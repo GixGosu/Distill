@@ -7,46 +7,89 @@
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [250, 300]
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract file info and determine format\nconst file = $input.first().json;\n\nconst formatMap = {\n  'vtt': 'WebVTT',\n  'srt': 'SubRip',\n  'txt': 'Plain Text',\n  'json': 'Structured JSON'\n};\n\nconst format = file.format || file.filename.split('.').pop().toLowerCase();\n\nreturn [{\n  json: {\n    ...file,\n    format,\n    formatName: formatMap[format] || 'Unknown',\n    processingStarted: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "detect-format",
+      "name": "Detect Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are analyzing a VTT transcript file. This could be ANY type of recorded content: meetings, lectures, podcasts, interviews, webinars, conference talks, customer calls, focus groups, depositions, etc.\n\n## Your Task\nRead the file \\`/transcripts/${$json.filename}\\` and create a comprehensive markdown summary.\n\n## First: Identify the Content Type\nBefore extracting, determine what kind of content this is:\n- Meeting (internal team, client, etc.)\n- Lecture/Educational session\n- Podcast episode\n- Interview (job, media, research)\n- Conference talk/presentation\n- Customer call (sales, support)\n- Focus group/User research\n- Legal proceeding/Deposition\n- Webinar\n- Other\n\nThis will guide what's most important to extract.\n\n## Create Output Directory\nFirst, ensure /transcripts/summaries/ directory exists (mkdir -p /transcripts/summaries).\n\n## Extract From This File:\n\n### Participants & Roles\n- Who is speaking (names, roles, or speaker labels)\n- Number of distinct speakers\n- Primary speaker vs others\n\n### Questions & Discussion Points\n- Questions asked by anyone\n- Answers or responses given\n- Points of clarification requested\n- Unresolved questions or deferred items\n\n### Key Content\n- Main topics discussed (in order of appearance)\n- Key points, decisions, or conclusions\n- Important facts, figures, or data mentioned\n- Technical terms or jargon used (with context)\n\n### Actionable Items\n- Action items or tasks assigned\n- Deadlines or commitments mentioned\n- Follow-up items needed\n- Tools, resources, or references cited\n\n### Notable Moments\n- Key insights or revelations\n- Points of agreement or disagreement\n- Emotional moments or tone shifts\n- Surprising information\n\n### Metadata\n- Apparent title/subject\n- Estimated duration (from timestamps)\n- Date/time if mentioned\n- Overall format and tone\n\n## Output Format\nWrite to \\`${$json.outputPath}\\`:\n\n# [Title/Subject]\n\n**Source**: ${$json.filename}\n**Type**: [Meeting/Lecture/Podcast/Interview/etc.]\n**Duration**: ~XX minutes\n**Participants**: [List if identifiable]\n\n## Key Questions & Responses\n\n### Q1: [Question/topic]\n**Response**: [Summary of answer/discussion]\n**From**: [Speaker if known]\n\n[...continue for all significant Q&A...]\n\n## Main Topics Covered\n\n### [Topic 1]\n[2-3 sentence summary]\n- Key point 1\n- Key point 2\n\n[...continue for all topics...]\n\n## Action Items & Follow-ups\n- [ ] [Action item] - [Owner if known]\n- [ ] [Follow-up needed]\n\n## Tools & Resources Mentioned\n- **[Name]**: [Context of how/why mentioned]\n\n## Notable Quotes & Insights\n> \"[Direct quote if notable]\"\n- [Key insight or observation]\n\n## Summary\n[3-5 sentence overview of the entire recording]\n\n## Content-Specific Notes\n[Any observations specific to this content type - e.g., for meetings: decisions made; for interviews: candidate assessment; for podcasts: key guest quotes]\n\n## Instructions\n- Be thorough - capture EVERYTHING of value\n- Adapt extraction to content type (meetings need action items, lectures need concepts, interviews need key responses)\n- Preserve specificity - don't generalize away details\n- Note uncertainty - if something is unclear, say so\n- After writing the file, output only: \"COMPLETE: ${$json.filename}\"\n\nRead /transcripts/${$json.filename} and begin.`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "jsonBody": "={{ JSON.stringify({ prompt: `You are analyzing a transcript file. Handle format conversion if needed.\n\n## File Information\n- Filename: ${$json.filename}\n- Format: ${$json.formatName} (.${$json.format})\n- Processing: File ${$json.fileIndex} of ${$json.totalFiles}\n\n## Format-Specific Handling\n\n### If .srt (SubRip):\nSubRip format uses numbered sequences:\n1\n00:00:01,000 --> 00:00:05,000\nText here\n\nParse the timestamps and text, ignore sequence numbers.\n\n### If .txt (Plain Text):\nNo timestamps available. Focus on content extraction.\n\n### If .json (Structured):\nLook for common structures:\n- { \"segments\": [{ \"text\": \"...\", \"start\": 0, \"end\": 5 }] } (Whisper)\n- { \"results\": { \"transcripts\": [...] } } (AWS Transcribe)\n- { \"transcript\": \"...\" } (Simple format)\n\n### If .vtt (WebVTT):\nStandard WebVTT with WEBVTT header and timestamps.\n\n## Your Task\n1. Read /transcripts/${$json.filename}\n2. Parse the format appropriately\n3. Ensure /transcripts/summaries/ exists (mkdir -p)\n4. Create comprehensive analysis\n\n## First: Identify the Content Type\nDetermine what kind of content this is:\n- Meeting (internal team, client, etc.)\n- Lecture/Educational session\n- Podcast episode\n- Interview (job, media, research)\n- Conference talk/presentation\n- Customer call (sales, support)\n- Focus group/User research\n- Webinar\n- Other\n\n## Extract From This File:\n\n### Participants & Roles\n- Who is speaking (names, roles, or speaker labels)\n- Number of distinct speakers\n\n### Questions & Discussion Points\n- Questions asked by anyone\n- Answers or responses given\n- Unresolved questions\n\n### Key Content\n- Main topics discussed\n- Key points, decisions, or conclusions\n- Important facts, figures, or data\n- Technical terms or jargon\n\n### Actionable Items\n- Action items or tasks assigned\n- Deadlines mentioned\n- Tools, resources, or references cited\n\n### Notable Moments\n- Key insights or revelations\n- Points of agreement or disagreement\n\n### Metadata\n- Apparent title/subject\n- Estimated duration (from timestamps if available)\n\n## Output Format\nWrite to ${$json.outputPath}:\n\n# [Title/Subject]\n\n**Source**: ${$json.filename}\n**Type**: [Content type]\n**Format**: ${$json.formatName}\n**Duration**: ~XX minutes (if determinable)\n**Participants**: [List if identifiable]\n\n## Key Questions & Responses\n[Extract all Q&A]\n\n## Main Topics Covered\n[Topic summaries with key points]\n\n## Action Items & Follow-ups\n- [ ] [Action items if any]\n\n## Tools & Resources Mentioned\n[List with context]\n\n## Notable Quotes & Insights\n[Key quotes and observations]\n\n## Summary\n[3-5 sentence overview]\n\n## Instructions\n- Be thorough - capture EVERYTHING of value\n- Adapt to the content type\n- Note if the format caused any parsing issues\n- After writing, output only: \"COMPLETE: ${$json.filename}\"\n\nRead /transcripts/${$json.filename} and begin.`, maxTurns: 15, workingDir: '/transcripts' }) }}",
         "options": {
           "timeout": 600000
-        }
+        },
+        "continueOnFail": true
       },
-      "id": "analyze-vtt",
-      "name": "Analyze VTT File",
+      "id": "analyze-file",
+      "name": "Analyze File",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [450, 300]
+      "position": [600, 300],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "// Return success status for main workflow\nconst result = $json.result || '';\nconst filename = $('Execute Workflow Trigger').item.json.filename;\n\nreturn [{\n  json: {\n    success: true,\n    filename: filename,\n    result: result,\n    completedAt: new Date().toISOString()\n  }\n}];"
+        "jsCode": "// Handle success or failure with detailed error info\nconst inputData = $('Detect Format').first().json;\nconst result = $json;\n\n// Check if the request failed\nconst isError = result.error || result.statusCode >= 400 || \n                (result.result && result.result.includes('Error'));\n\nif (isError) {\n  const errorMessage = result.error?.message || \n                       result.message || \n                       result.result || \n                       'Unknown error during analysis';\n  \n  console.log(`Failed to process ${inputData.filename}: ${errorMessage}`);\n  \n  return [{\n    json: {\n      success: false,\n      filename: inputData.filename,\n      format: inputData.format,\n      error: errorMessage,\n      errorDetails: {\n        statusCode: result.statusCode,\n        attemptedAt: new Date().toISOString()\n      }\n    }\n  }];\n}\n\n// Success case\nconst resultText = result.result || '';\nconst isComplete = resultText.includes('COMPLETE:') || resultText.includes('COMPLETE');\n\nreturn [{\n  json: {\n    success: isComplete,\n    filename: inputData.filename,\n    format: inputData.format,\n    outputPath: inputData.outputPath,\n    result: resultText,\n    completedAt: new Date().toISOString(),\n    processingTime: Date.now() - new Date(inputData.processingStarted).getTime()\n  }\n}];"
+      },
+      "id": "handle-result",
+      "name": "Handle Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Update status file for progress tracking.\n\nAppend to /transcripts/.status.json or create if not exists:\n\nUpdate the progress.currentFile to: ${$json.filename}\nUpdate the progress.filesProcessed to increment by 1 if success\nUpdate the progress.filesFailed to increment by 1 if failure\nSet lastUpdated to current time\n\nResult: ${$json.success ? 'SUCCESS' : 'FAILED - ' + ($json.error || 'unknown')}\n\nOutput only: STATUS_UPDATED`, maxTurns: 3, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 30000 },
+        "continueOnFail": true
+      },
+      "id": "update-status",
+      "name": "Update Progress Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Return final result to main workflow\nconst result = $('Handle Result').first().json;\n\nreturn [{ json: result }];"
       },
       "id": "return-result",
       "name": "Return Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [650, 300]
+      "position": [1200, 300]
     }
   ],
   "connections": {
     "Execute Workflow Trigger": {
-      "main": [
-        [{ "node": "Analyze VTT File", "type": "main", "index": 0 }]
-      ]
+      "main": [[{ "node": "Detect Format", "type": "main", "index": 0 }]]
     },
-    "Analyze VTT File": {
-      "main": [
-        [{ "node": "Return Result", "type": "main", "index": 0 }]
-      ]
+    "Detect Format": {
+      "main": [[{ "node": "Analyze File", "type": "main", "index": 0 }]]
+    },
+    "Analyze File": {
+      "main": [[{ "node": "Handle Result", "type": "main", "index": 0 }]]
+    },
+    "Handle Result": {
+      "main": [[{ "node": "Update Progress Status", "type": "main", "index": 0 }]]
+    },
+    "Update Progress Status": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
     }
   },
   "settings": {

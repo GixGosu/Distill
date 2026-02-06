@@ -1,5 +1,5 @@
 {
-  "name": "VTT Analyzer - SCALED V2 (Extended Quality Loop)",
+  "name": "VTT Analyzer - Universal Dashboard Generator",
   "nodes": [
     {
       "parameters": {},
@@ -7,910 +7,527 @@
       "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [
-        250,
-        300
-      ]
+      "position": [200, 300]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `List all .vtt files in /transcripts/ and return ONLY a JSON array of filenames.\n\nOutput format example: [\"file1.vtt\", \"file2.vtt\", \"file3.vtt\"]\n\nNo other text, explanation, or markdown - just the raw JSON array.`, maxTurns: 5, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 60000
-        }
+        "httpMethod": "POST",
+        "path": "analyze-transcripts",
+        "options": {}
       },
-      "id": "list-files",
-      "name": "List Files",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        450,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const response = $json.result;\n\nconst match = response.match(/\\[[\\s\\S]*\\]/);\nif (!match) {\n  throw new Error('No JSON array found in response: ' + response.substring(0, 200));\n}\n\nconst files = JSON.parse(match[0]);\nconsole.log(`Found ${files.length} VTT files`);\n\nreturn files.map(filename => ({\n  json: {\n    filename,\n    outputPath: `/transcripts/summaries/${filename.replace('.vtt', '.md')}`\n  }\n}));"
-      },
-      "id": "parse-files",
-      "name": "Parse File List",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        650,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "source": "database",
-        "workflowId": {
-          "__rl": true,
-          "mode": "list",
-          "value": ""
-        },
-        "mode": "each"
-      },
-      "id": "execute-subworkflow",
-      "name": "Analyze Files (Max 3 Parallel)",
-      "type": "n8n-nodes-base.executeWorkflow",
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
-      "position": [
-        850,
-        300
-      ],
-      "notesInFlow": true,
-      "notes": "Configure to point to 'VTT Single File Analyzer' workflow"
+      "position": [200, 500],
+      "webhookId": "analyze-transcripts"
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst successCount = items.filter(item => item.json.success).length;\n\nreturn [{\n  json: {\n    stage: 'individual_analysis_complete',\n    filesProcessed: items.length,\n    successCount: successCount,\n    timestamp: new Date().toISOString()\n  }\n}];"
-      },
-      "id": "analysis-complete",
-      "name": "Analysis Complete",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1050,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are creating a comprehensive synthesis of a LARGE collection of analyzed transcript files (100+ files).\n\n## CRITICAL: Hierarchical Processing Required\nDue to the large number of files, you MUST use a batch processing approach:\n\n### Step 1: Count and Batch\n1. List all .md files in /transcripts/summaries/\n2. Count the total number of files\n3. Divide into batches of 20 files each (alphabetically)\n\n### Step 2: Create Batch Summaries\nFor each batch, create a batch summary file:\n- /transcripts/batch-summaries/batch-01.md (files 1-20)\n- /transcripts/batch-summaries/batch-02.md (files 21-40)\n- etc.\n\nEach batch summary should contain:\n- List of files in that batch\n- Key questions from those files\n- Tools mentioned\n- Main topics covered\n- Notable insights\n\n### Step 3: Meta Synthesis\nAfter all batch summaries are created, read ONLY the batch summary files to create the final combined-analysis.md\n\n## Process\n1. mkdir -p /transcripts/batch-summaries\n2. List all .md files in /transcripts/summaries/\n3. Process files in batches of 20, creating batch summaries\n4. Read all batch summaries and synthesize into combined-analysis.md\n\n## Required Sections in combined-analysis.md\n\n### Executive Summary\n- Total sessions analyzed\n- Overall themes and focus areas\n- Key takeaways in 5-7 bullet points\n\n### Question Frequency Analysis\nCreate a table:\n| Question/Topic | Times Asked | Sessions |\n|---------------|-------------|----------|\n| [question pattern] | [count] | [list] |\n\nIdentify:\n- Most frequently asked questions (top 10)\n- Questions asked in multiple sessions\n- Unanswered or recurring questions\n\n### Topic Heatmap Data\nBinary coverage matrix (X = covered, - = not covered):\n\n| Topic | Session 1 | Session 2 | Session 3 | ... | Coverage % |\n|-------|-----------|-----------|-----------|-----|------------|\n| [topic] | X | X | - | ... | 67% |\n\nInclude:\n- Topics appearing in 3+ sessions (high overlap)\n- Topics unique to single sessions\n\n### Cross-Session Insights\n\n#### Common Themes\n- Themes reinforced across multiple sessions\n- Consistent recommendations\n- Shared terminology\n\n#### Unique Contributions\n- Concepts only in one session\n- Alternative viewpoints\n- Specialized deep-dives\n\n#### Knowledge Gaps\n- Topics mentioned but not explained\n- Prerequisites assumed\n- Areas needing research\n\n### Tools & Resources Compendium\n| Resource | Type | Sessions | Context |\n|----------|------|----------|----------|\n| [name] | [tool/site/book/etc] | [list] | [why mentioned] |\n\n### Investigation Priorities\nThings warranting further research:\n1. [Topic] - [Why investigate]\n2. ...\n\n### Recommended Review Order\nRecommended order for consuming this content:\n1. Start with: [session] - [reason]\n2. Then: [session] - [builds on concepts]\n3. ...\n\n### Master Q&A Index\nAll questions across all sessions, organized by topic:\n\n#### [Topic Category]\n- Q: [question] → A: [brief answer] (Session X)\n- Q: [question] → A: [brief answer] (Session Y)\n\n### Session Quick Reference\nFor each session, provide a 2-line summary with link reference:\n- **[Session Name]** (summaries/filename.md): [One-line description]\n\n## Output\nWrite the complete synthesis to /transcripts/combined-analysis.md\nAfter completing, output: \"SYNTHESIS COMPLETE\"\n\nBegin by listing /transcripts/summaries/`, maxTurns: 30, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 3600000
-        }
-      },
-      "id": "synthesis",
-      "name": "Hierarchical Synthesis Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1250,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are creating an interactive HTML dashboard from a LARGE collection of analyzed transcript content (100+ sessions).\n\n## Your Task\nRead /transcripts/combined-analysis.md and create an engaging HTML visualization optimized for handling 100+ sessions.\n\n## Design Philosophy\n- Reduce cognitive load: Scannable in seconds\n- Progressive disclosure: Overview first, details on demand\n- Visual hierarchy: Important insights prominent\n- Enjoyable interaction: Smooth animations\n- SCALABILITY: Must handle 100+ sessions without performance issues\n\n## CRITICAL: PAGINATION & LAZY LOADING FOR SCALE\n\n### Session Navigator - PAGINATED (20 per page)\n- Show only 20 session cards at a time\n- Add pagination controls: << < Page X of Y > >>\n- Store current page in state\n- Jump-to-page input field\n- Show total session count\n\n### Question Explorer - LAZY LOAD ACCORDION\n- Show only 30 questions initially\n- \"Load More\" button to fetch next 30\n- Virtual scrolling for long lists\n- Filter counts update dynamically\n\n### Topic Heatmap - SCROLLABLE GRID\n- Fixed topic labels on left\n- Horizontally scrollable session columns\n- Sticky header row with session names\n- Optional: Group by module/week if metadata available\n\n## CRITICAL DATA EXTRACTION REQUIREMENTS\n\n### Questions (ALL of them)\n- Parse the ENTIRE Master Q&A Index section from combined-analysis.md\n- Extract ALL questions with their answers - do NOT sample or truncate\n- Assign categories dynamically based on content (e.g., technical, process, clarification, decision, follow-up - adapt to what makes sense for this content)\n- Include frequency count from Question Frequency Analysis table\n\n### Tools (Include URLs)\n- Parse ALL tools from the Tools & Resources Compendium\n- For each tool, add official URL if you recognize it. For unknown tools, link to a Google search.\n- Include session count and context description\n\n### Sessions (Dual Links)\n- Include BOTH summary and original VTT file paths\n- Format: { file: \"summaries/name.md\", originalFile: \"name.vtt\" }\n- Render both \"View Summary\" and \"View Original\" buttons\n\n### Takeaways (ALL 7)\n- Include ALL 7 key takeaways from Executive Summary, not just 3\n\n## Required Components\n\n### 1. Comprehension Meter\n- Reading path selector: Quick Scan (3min), Key Points (12min), Full Review (25min), Deep Dive (45min+)\n- Animated progress bar\n\n### 2. Hero Section with Stats\n- Total sessions, total questions, total tools\n- ALL 7 key takeaway cards\n\n### 3. Reading Progress Indicator\n- Fixed sidebar with dots for each section\n- Tracks scroll position, highlights active section\n- Click to jump to section\n\n### 4. Interactive Topic Heatmap (SCROLLABLE)\n- Fixed topic labels on left (sticky column)\n- Horizontally scrollable sessions\n- CSS Grid matrix: topic x session\n- Binary colors: #2563eb (covered) / #e5e7eb (not)\n- Click for tooltip details\n\n### 5. Question Explorer (LAZY LOADED)\n- Filter buttons: Dynamically generated from content categories (All + detected categories)\n- Searchable accordion with frequency badges\n- Initially show 30, \"Load More\" for rest\n- Virtual scrolling for performance\n\n### 6. Tools & Resources Gallery (With Links)\n- Card grid with category tabs\n- Tool names are clickable links to official websites\n- Categories: Auto-detect from content (e.g., Software, Services, Books, Websites, Frameworks, etc.)\n\n### 7. Session Navigator (PAGINATED)\n- 20 cards per page with pagination controls\n- Page number display: \"Page 1 of 7\"\n- Previous/Next buttons\n- Jump-to-page input\n- \"View Summary\" button for .md files\n- \"View Original\" button for .vtt files\n\n### 8. Investigation Queue\n- Checklist with localStorage persistence\n- Priority indicators\n\n### 9. Global Search\n- Filters all sections including paginated ones\n- Highlights matches\n- Searches ALL data, not just visible page\n\n## Technical Requirements\n- Single self-contained HTML file\n- All CSS/JS inline (no external dependencies except D3.js CDN)\n- Mobile responsive with media queries\n- Dark/light mode toggle (localStorage)\n- Print stylesheet\n- Smooth hover transitions and animations\n- PERFORMANCE: Use requestAnimationFrame for animations\n- PERFORMANCE: Debounce search input (300ms)\n\n## Color Palette\n- Primary: #2563eb\n- Secondary: #7c3aed\n- Accent: #f59e0b\n- Dark mode: #0f172a bg, #e2e8f0 text\n\n## Output\nWrite to /transcripts/dashboard.html\nAfter completing, output: \"VISUALIZATION COMPLETE\"\n\nRead /transcripts/combined-analysis.md and begin.`, maxTurns: 30, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 3600000
-        }
-      },
-      "id": "visualization",
-      "name": "Visualization Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1450,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are enhancing an HTML dashboard with an interactive knowledge graph visualization optimized for LARGE datasets (100+ sessions).\n\n## Your Task\nRead /transcripts/dashboard.html and /transcripts/combined-analysis.md, then add an interactive knowledge graph that visualizes relationships between topics, tools, and sessions.\n\n## CRITICAL: LARGE DATASET OPTIMIZATIONS\n\n### Node Filtering (Required for 100+ sessions)\n- By default, show only TOP 50 most-connected nodes\n- Add filter controls:\n  - Slider: \"Show top N nodes\" (10-100, default 50)\n  - Checkboxes: Show Topics / Show Tools / Show Sessions\n  - Dropdown: Filter by module/category if available\n- \"Show All\" button (with performance warning for 200+ nodes)\n\n### Performance Requirements\n- Use D3 force simulation with limited iterations\n- Stop simulation after layout stabilizes (alpha < 0.001)\n- Debounce filter changes (200ms)\n- Canvas fallback for 100+ visible nodes (optional but recommended)\n\n### Clustering\n- Cluster nodes by type (topics, tools, sessions)\n- Group related sessions if module info available\n- Use collision detection to prevent overlap\n\n## Requirements\n- Use D3.js (include via CDN: https://d3js.org/d3.v7.min.js)\n- Extract nodes from the dashboard data:\n  - Topics from the heatmap section\n  - Tools from the tools section\n  - Sessions from the session navigator\n- Create links based on:\n  - Which sessions cover which topics\n  - Which tools are mentioned in which sessions\n  - Conceptual relationships between topics\n- Visual design:\n  - Different colors for each node type (topic=#2563eb, tool=#7c3aed, session=#f59e0b)\n  - Node size based on connection count (more connections = larger)\n  - Label only high-connectivity nodes by default\n  - Smooth physics-based layout\n- Interactions:\n  - Draggable nodes\n  - Click to highlight related nodes AND show details panel\n  - Hover for details tooltip\n  - Zoom and pan support\n  - Double-click to focus on node and its connections\n- Place the graph in a new section after the topic heatmap\n- Ensure it works with existing dark mode toggle\n- Make it responsive (smaller graph on mobile)\n\n## Output\nWrite the enhanced dashboard to /transcripts/dashboard.html\nAfter completing, output: \"KNOWLEDGE GRAPH ADDED\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 1200000
-        }
-      },
-      "id": "knowledge-graph-agent",
-      "name": "Knowledge Graph Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1550,
-        300
-      ],
-      "notesInFlow": true,
-      "notes": "Increased timeout for 100+ sessions"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Initialize loop counter for extended quality loop\n// This loop now encompasses Coverage Metrics through Quality Reviewers\nreturn [{\n  json: {\n    iteration: 1,\n    maxIterations: 3\n  }\n}];"
-      },
-      "id": "init-loop",
-      "name": "Init Quality Loop",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1700,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "formTitle": "Run Extended Quality Loop",
-        "formDescription": "Start the quality review loop from Coverage Metrics Agent. This will run up to 3 iterations to capture all questions and missing components.",
+        "formTitle": "Transcript Analysis Configuration",
+        "formDescription": "Configure your transcript analysis run. All fields are optional - defaults will be used if not specified.",
         "formFields": {
-          "values": []
+          "values": [
+            {
+              "fieldLabel": "Project Name",
+              "fieldType": "text",
+              "placeholder": "Q1 Planning Sessions",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Dashboard Title",
+              "fieldType": "text",
+              "placeholder": "Transcript Analysis Dashboard",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Primary Brand Color",
+              "fieldType": "text",
+              "placeholder": "#2563eb",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Secondary Brand Color",
+              "fieldType": "text",
+              "placeholder": "#7c3aed",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Logo URL (optional)",
+              "fieldType": "text",
+              "placeholder": "https://example.com/logo.png",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Custom CSS (optional)",
+              "fieldType": "textarea",
+              "placeholder": "/* Add custom styles here */",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Custom Styling Instructions",
+              "fieldType": "textarea",
+              "placeholder": "Describe any specific styling preferences: dark theme, minimal design, corporate style, etc.",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Participants (comma-separated)",
+              "fieldType": "text",
+              "placeholder": "Sarah Chen, Mike Johnson, Jen Smith",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Tags (comma-separated)",
+              "fieldType": "text",
+              "placeholder": "planning, roadmap, quarterly",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Date Range",
+              "fieldType": "text",
+              "placeholder": "2024-01-01 to 2024-03-31",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Output Format",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "HTML Dashboard Only" },
+                  { "option": "JSON Data Only" },
+                  { "option": "Both HTML and JSON" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Processing Mode",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  { "option": "Full (reprocess all files)" },
+                  { "option": "Incremental (new/changed files only)" }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Sections to Include",
+              "fieldType": "text",
+              "placeholder": "all (or: questions,topics,tools,sessions,graph)",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Notification Webhook URL (optional)",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/...",
+              "requiredField": false
+            }
+          ]
         },
         "options": {}
       },
-      "id": "form-coverage-trigger",
-      "name": "Form: Coverage Metrics Loop",
+      "id": "config-form",
+      "name": "Configuration Form",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.1,
-      "position": [
-        1700,
-        500
-      ],
-      "webhookId": "coverage-metrics-form"
+      "position": [200, 700],
+      "webhookId": "config-form"
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are enhancing an HTML dashboard with extraction coverage metrics.\n\n## Your Task\nRead /transcripts/dashboard.html, /transcripts/combined-analysis.md, and count files in /transcripts/summaries/. Add a coverage metrics panel showing how complete the data extraction is.\n\n## Requirements\n- Add a \"Coverage Metrics\" panel in the hero section\n- Calculate and display:\n  - Questions: How many Q&A items in dashboard vs total in combined-analysis.md\n  - Tools: How many tools displayed vs mentioned across all summaries\n  - Sessions: How many session cards vs .md files in summaries folder\n  - Topics: How many topics in heatmap vs unique topics in analysis\n- Display each metric as:\n  - Fraction (e.g., \"42/47\")\n  - Percentage\n  - Visual progress bar\n- Style the panel to match existing dashboard aesthetic\n- Make metrics visually prominent but not overwhelming\n- Ensure dark mode compatibility\n- IMPORTANT: Also identify what content is missing\n\n## Output\nWrite the enhanced dashboard to /transcripts/dashboard.html\nAfter completing, output: \"COVERAGE METRICS ADDED - Gaps identified for completion\"`, maxTurns: 20, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 300000
-        }
+        "jsCode": "// Merge configuration from all trigger types\nconst input = $input.first().json;\n\n// Handle webhook body, form data, or defaults\nconst config = {\n  // Metadata\n  projectName: input.projectName || input['Project Name'] || 'Transcript Analysis',\n  dashboardTitle: input.dashboardTitle || input['Dashboard Title'] || 'Transcript Analysis Dashboard',\n  participants: (input.participants || input['Participants (comma-separated)'] || '').split(',').map(p => p.trim()).filter(Boolean),\n  tags: (input.tags || input['Tags (comma-separated)'] || '').split(',').map(t => t.trim()).filter(Boolean),\n  dateRange: input.dateRange || input['Date Range'] || '',\n  \n  // Styling\n  primaryColor: input.primaryColor || input['Primary Brand Color'] || '#2563eb',\n  secondaryColor: input.secondaryColor || input['Secondary Brand Color'] || '#7c3aed',\n  accentColor: input.accentColor || '#f59e0b',\n  logoUrl: input.logoUrl || input['Logo URL (optional)'] || '',\n  customCss: input.customCss || input['Custom CSS (optional)'] || '',\n  stylingInstructions: input.stylingInstructions || input['Custom Styling Instructions'] || '',\n  \n  // Processing options\n  outputFormat: input.outputFormat || input['Output Format'] || 'Both HTML and JSON',\n  processingMode: input.processingMode || input['Processing Mode'] || 'Full (reprocess all files)',\n  sectionsToInclude: input.sectionsToInclude || input['Sections to Include'] || 'all',\n  \n  // Notifications\n  notificationWebhook: input.notificationWebhook || input['Notification Webhook URL (optional)'] || '',\n  \n  // Internal tracking\n  runId: `run-${Date.now()}`,\n  startedAt: new Date().toISOString()\n};\n\n// Determine output flags\nconfig.generateHtml = config.outputFormat.includes('HTML') || config.outputFormat.includes('Both');\nconfig.generateJson = config.outputFormat.includes('JSON') || config.outputFormat.includes('Both');\nconfig.incrementalMode = config.processingMode.includes('Incremental');\n\n// Parse sections\nif (config.sectionsToInclude === 'all') {\n  config.sections = ['questions', 'topics', 'tools', 'sessions', 'graph', 'summary', 'heatmap'];\n} else {\n  config.sections = config.sectionsToInclude.split(',').map(s => s.trim().toLowerCase());\n}\n\nreturn [{ json: { config } }];"
       },
-      "id": "coverage-metrics-agent",
-      "name": "Coverage Metrics Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1850,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are completing the Questions section of the dashboard to achieve 100% Q&A coverage (target: 500+ questions).\n\n## Current State\nThe dashboard has ~94 \"core\" questions from the Master Q&A Index. But there are 406+ additional session-specific questions in individual summary files that need to be extracted.\n\n## Your Task\nExtract ALL questions from ALL sources and add them to the dashboard.\n\n## Process\n1. Read /transcripts/dashboard.html - count current questions in the Question Explorer (expect ~94)\n2. Read /transcripts/combined-analysis.md - check Master Q&A Index for any missing core questions\n3. CRITICAL - Scan ALL files in /transcripts/summaries/*.md:\n   - List all .md files in /transcripts/summaries/\n   - Read each file and extract Q&A items\n   - Look for patterns: \"Q:\", \"Question:\", \"- Q:\", bullet points ending with \"?\"\n   - Each summary contains session-specific questions NOT in the Master Q&A Index\n   - Extract the question AND its answer/context\n4. Deduplicate similar questions (keep the one with best answer)\n5. Add ALL missing questions to the dashboard's Question Explorer\n\n## Expected Outcome\nYou should find and add approximately 400+ questions from the summary files.\n\n## Requirements for Each Question\n- Match existing card/accordion format exactly\n- Assign appropriate category based on content type (auto-detect categories from the actual content)\n- Include the answer summary\n- Include source session reference (which .md file it came from)\n- Ensure it works with existing filters and search\n- Maintain dark mode compatibility\n- Update the coverage metrics to reflect new totals\n\n## Output\nWrite the updated dashboard to /transcripts/dashboard.html\nAfter completing, output: \"QUESTIONS COMPLETE: Added X questions (now Y total)\"`, maxTurns: 50, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 3600000
-        }
-      },
-      "id": "questions-completion-agent",
-      "name": "Questions Completion Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2000,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are completing the Tools section of the dashboard.\n\n## Your Task\nRead /transcripts/dashboard.html and /transcripts/combined-analysis.md. Find and add ALL missing tools to achieve 100% tools coverage.\n\n## Process\n1. Parse the Tools & Resources Compendium from combined-analysis.md\n2. Also scan individual summary files in /transcripts/summaries/ for tool mentions\n3. Count tools currently in the dashboard's Tools section\n4. Identify ALL tools that exist in sources but not in the dashboard\n5. Add each missing tool\n\n## Requirements for Each Tool\n- Match existing card format exactly\n- Assign appropriate category based on tool type (auto-detect from content)\n- Include context/description of how the tool was mentioned\n- Include session count (how many sessions mentioned it)\n- Add official URL if known, otherwise link to Google search\n- Maintain dark mode compatibility\n\n## Output\nWrite the updated dashboard to /transcripts/dashboard.html\nAfter completing, output: \"TOOLS COMPLETE: Added X tools (now Y total)\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 900000
-        }
-      },
-      "id": "tools-completion-agent",
-      "name": "Tools Completion Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2150,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are completing the Sessions section of the dashboard.\n\n## Your Task\nRead /transcripts/dashboard.html and list all files in /transcripts/summaries/. Find and add ALL missing sessions to achieve 100% session coverage.\n\n## Process\n1. List all .md files in /transcripts/summaries/\n2. Count session cards currently in the dashboard's Session Navigator\n3. Identify ALL session files that don't have corresponding cards\n4. Add each missing session card\n\n## Requirements for Each Session\n- Match existing session card format exactly\n- Include session title (derived from filename or extracted from file)\n- Include brief description/topics if available in the summary\n- Add \"View Summary\" button linking to summaries/filename.md\n- Add \"View Original\" button linking to filename.vtt\n- Ensure pagination system includes new sessions\n- Update total session count in hero section\n- Maintain dark mode compatibility\n\n## Output\nWrite the updated dashboard to /transcripts/dashboard.html\nAfter completing, output: \"SESSIONS COMPLETE: Added X sessions (now Y total)\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 900000
-        }
-      },
-      "id": "sessions-completion-agent",
-      "name": "Sessions Completion Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2300,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are completing the Topics section of the dashboard's heatmap.\n\n## Your Task\nRead /transcripts/dashboard.html and /transcripts/combined-analysis.md. Find and add ALL missing topics to achieve 100% topic coverage in the heatmap.\n\n## Process\n1. Parse the Topic Heatmap Data section from combined-analysis.md\n2. Also scan individual summaries for unique topics mentioned\n3. Compare against topics currently in the dashboard's heatmap\n4. Identify ALL missing topics\n5. Add each missing topic row with correct session coverage\n\n## Requirements for Each Topic\n- Add a new row to the heatmap grid\n- Mark coverage (X or -) for each session column\n- Calculate and display coverage percentage\n- Maintain alphabetical or logical ordering\n- Ensure horizontal scrolling works with new rows\n- Update the tooltip data for new cells\n- Maintain dark mode compatibility\n\n## Output\nWrite the updated dashboard to /transcripts/dashboard.html\nAfter completing, output: \"TOPICS COMPLETE: Added X topics (now Y total)\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 900000
-        }
-      },
-      "id": "topics-completion-agent",
-      "name": "Topics Completion Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2450,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are updating the coverage metrics panel to reflect the completed content.\n\n## Your Task\nRead /transcripts/dashboard.html and recalculate all coverage metrics now that missing content has been added.\n\n## Requirements\n- Update the Coverage Metrics panel values\n- Recalculate:\n  - Questions: Should now show higher/full coverage\n  - Tools: Should now show higher/full coverage\n  - Sessions: Should now show higher/full coverage\n  - Topics: Should now show higher/full coverage\n- Update the progress bars to reflect new percentages\n- If any metric is still not 100%, note what's still missing\n- Ensure the visual display is accurate\n\n## Output\nWrite the updated dashboard to /transcripts/dashboard.html\nAfter completing, output: \"COVERAGE UPDATED: Questions X%, Tools Y%, Sessions Z%, Topics W%\"`, maxTurns: 20, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "id": "coverage-metrics-update-agent",
-      "name": "Coverage Metrics Update Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2600,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are enhancing an HTML dashboard by adding clickable links to all tools.\n\n## Your Task\nRead /transcripts/dashboard.html and enhance the Tools section so every tool has a clickable link to learn more.\n\n## Requirements\n- For each tool in the Tools section:\n  - Identify if it's a well-known tool/platform (OpenAI, Claude, LangChain, NIST, OWASP, GitHub, etc.)\n  - If known: link to the official website\n  - If unknown: link to a Google search for that tool name\n- Add visual indicators:\n  - External link icon (↗) for direct links\n  - Search icon (🔍) for Google search links\n- Links should:\n  - Open in new tab (target=\"_blank\")\n  - Include rel=\"noopener\" for security\n- Maintain existing card layout and styling\n- Ensure dark mode compatibility\n\n## Output\nWrite the enhanced dashboard to /transcripts/dashboard.html\nAfter completing, output: \"TOOL LINKS ADDED\"`, maxTurns: 20, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "id": "tool-links-agent",
-      "name": "Tool Links Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2750,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are enhancing an HTML dashboard with subtle, professional micro-animations.\n\n## Your Task\nRead /transcripts/dashboard.html and add polished animations that improve the user experience without being distracting.\n\n## Requirements\nAdd these animation effects:\n1. **Stat cards**: Subtle shimmer effect on hover or load\n2. **Number values**: Count-up animation when the page loads\n3. **Cards** (tools, sessions, takeaways): Gentle lift effect on hover\n4. **Accordions**: Smooth expand/collapse transitions\n5. **Section reveals**: Fade-in as user scrolls (optional)\n\nDesign principles:\n- Animations should feel professional, not playful\n- Keep durations short (200-400ms for hovers, 600-1000ms for reveals)\n- Use ease-out or ease-in-out timing functions\n- Ensure animations enhance rather than distract\n\nAccessibility requirement:\n- Respect prefers-reduced-motion media query\n- Users who prefer reduced motion should see no animations\n\n## Output\nWrite the enhanced dashboard to /transcripts/dashboard.html\nAfter completing, output: \"ANIMATIONS ADDED\"`, maxTurns: 20, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "id": "animation-agent",
-      "name": "Animation Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2900,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are enhancing an HTML dashboard with a reading path selector for different comprehension depths.\n\n## Your Task\nRead /transcripts/dashboard.html and add a reading mode selector that lets users choose how deeply they want to engage with the content.\n\n## Requirements\nAdd a \"Reading Mode\" selector near the top of the dashboard with three options:\n1. **Quick Scan** (2-3 minutes): Shows only essential stats, top takeaways, and session count\n2. **Key Points** (10-15 minutes): Shows stats, all takeaways, question explorer, tools overview, and topic heatmap\n3. **Full Review** (30+ minutes): Shows everything including knowledge graph, investigation queue, and all details\n\nImplementation:\n- Add data attributes to existing sections to tag their depth level\n- Create a toggle UI that's visually clear and easy to use\n- When a mode is selected, show/hide appropriate sections\n- Save user preference to localStorage\n- Default to \"Key Points\" mode\n\nDesign:\n- Make the selector visually prominent but not intrusive\n- Use icons or visual cues for each mode\n- Indicate estimated reading time\n- Ensure smooth transitions when switching modes\n\n## Output\nWrite the enhanced dashboard to /transcripts/dashboard.html\nAfter completing, output: \"READING PATHS ADDED\"`, maxTurns: 20, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "id": "reading-path-agent",
-      "name": "Reading Path Agent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3050,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are reviewing dashboard.html for CONTENT ACCURACY.\n\nRead these files:\n1. /transcripts/combined-analysis.md (source of truth)\n2. /transcripts/dashboard.html (what we're reviewing)\n3. List and sample files in /transcripts/summaries/*.md\n\n## Verify Each Criterion:\n\n1. **Sessions Complete**: Count sessions in dashboard vs .md files in summaries/\n2. **Question Count**: Compare Q&A counts between sources\n3. **Topics Complete**: Check heatmap topics against combined-analysis\n4. **Tools Listed**: Verify all tools from summaries appear in dashboard\n5. **No Fabrication**: Spot-check 3 random facts against source files\n6. **Summary Accurate**: Verify executive summary claims match data\n\n## Output Format (JSON only, no other text):\n{\n  \"dimension\": \"content_accuracy\",\n  \"criteria\": {\n    \"sessions_complete\": { \"pass\": true, \"note\": \"X of Y sessions\" },\n    \"question_count\": { \"pass\": true, \"note\": \"...\" },\n    \"topics_complete\": { \"pass\": true, \"note\": \"...\" },\n    \"tools_listed\": { \"pass\": true, \"note\": \"...\" },\n    \"no_fabrication\": { \"pass\": true, \"note\": \"...\" },\n    \"summary_accurate\": { \"pass\": true, \"note\": \"...\" }\n  },\n  \"overall_pass\": true,\n  \"issues\": [],\n  \"recommendations\": []\n}\n\nOutput ONLY the JSON object, no markdown or explanation.`, maxTurns: 20, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 600000
-        }
-      },
-      "id": "content-reviewer",
-      "name": "Content Accuracy Reviewer",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3250,
-        200
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are reviewing dashboard.html for VISUAL DESIGN & UX.\n\nRead /transcripts/dashboard.html and analyze the CSS and HTML structure.\n\n## Verify Each Criterion:\n\n1. **Visual Hierarchy**: Are key insights in hero section prominent? Large fonts, contrasting colors?\n2. **Color Consistency**: Is #2563eb primary, #7c3aed secondary, #f59e0b accent used correctly?\n3. **Typography**: Font sizes appropriate (2rem headers, 1rem body)? Line heights readable (1.5+)?\n4. **Whitespace**: Padding/margins balanced? Not cramped or too sparse?\n5. **Interactive Feedback**: Hover states defined with transitions? Focus states visible?\n6. **Mobile Responsive**: Media queries present? Flexbox/grid used for layout?\n7. **Progressive Disclosure**: Accordions/expandables for detailed content?\n8. **Professional Aesthetic**: Clean, modern, would pass enterprise review?\n\n## Output Format (JSON only, no other text):\n{\n  \"dimension\": \"visual_design\",\n  \"criteria\": {\n    \"visual_hierarchy\": { \"pass\": true, \"note\": \"...\" },\n    \"color_consistency\": { \"pass\": true, \"note\": \"...\" },\n    \"typography\": { \"pass\": true, \"note\": \"...\" },\n    \"whitespace\": { \"pass\": true, \"note\": \"...\" },\n    \"interactive_feedback\": { \"pass\": true, \"note\": \"...\" },\n    \"mobile_responsive\": { \"pass\": true, \"note\": \"...\" },\n    \"progressive_disclosure\": { \"pass\": true, \"note\": \"...\" },\n    \"professional_aesthetic\": { \"pass\": true, \"note\": \"...\" }\n  },\n  \"pass_count\": 8,\n  \"overall_pass\": true,\n  \"issues\": [],\n  \"recommendations\": []\n}\n\nPass condition: 7+ of 8 criteria must pass.\nOutput ONLY the JSON object, no markdown or explanation.`, maxTurns: 15, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 600000
-        }
-      },
-      "id": "visual-reviewer",
-      "name": "Visual Design Reviewer",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3250,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are reviewing dashboard.html for TECHNICAL QUALITY.\n\nRead /transcripts/dashboard.html and analyze HTML, CSS, and JavaScript.\n\n## Verify Each Criterion:\n\n1. **Valid HTML**: DOCTYPE present, proper tag nesting, all tags closed?\n2. **CSS Loads**: <style> block present, selectors valid, no syntax errors?\n3. **JS Executes**: <script> block present, no syntax errors, functions defined?\n4. **Search Works**: Search input element exists, connected to filter function?\n5. **Dark Mode Works**: Toggle button present, CSS variables for theme, localStorage code?\n6. **Links Work**: All href values point to valid relative paths (summaries/*.md)?\n7. **localStorage Works**: Code to save/restore checkbox states present?\n8. **Print Stylesheet**: @media print rules present for clean printing?\n\n## Output Format (JSON only, no other text):\n{\n  \"dimension\": \"technical_quality\",\n  \"criteria\": {\n    \"valid_html\": { \"pass\": true, \"note\": \"...\" },\n    \"css_loads\": { \"pass\": true, \"note\": \"...\" },\n    \"js_executes\": { \"pass\": true, \"note\": \"...\" },\n    \"search_works\": { \"pass\": true, \"note\": \"...\" },\n    \"dark_mode_works\": { \"pass\": true, \"note\": \"...\" },\n    \"links_work\": { \"pass\": true, \"note\": \"...\" },\n    \"localstorage_works\": { \"pass\": true, \"note\": \"...\" },\n    \"print_stylesheet\": { \"pass\": true, \"note\": \"...\" }\n  },\n  \"overall_pass\": true,\n  \"issues\": [],\n  \"recommendations\": []\n}\n\nPass condition: ALL 8 criteria must pass (technical must be flawless).\nOutput ONLY the JSON object, no markdown or explanation.`, maxTurns: 15, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 600000
-        }
-      },
-      "id": "technical-reviewer",
-      "name": "Technical Quality Reviewer",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3250,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Aggregate all review results with error handling\n\n// Safely get iteration count - check multiple possible sources\nfunction safeGetIteration() {\n  try {\n    const init = $('Init Quality Loop');\n    if (init?.item?.json?.iteration) return init.item.json.iteration;\n  } catch (e) {}\n  try {\n    const inc = $('Increment Counter');\n    if (inc?.item?.json?.iteration) return inc.item.json.iteration;\n  } catch (e) {}\n  return 1;\n}\n\nconst iteration = safeGetIteration();\n\n// Parse review results (handle potential JSON in markdown)\nfunction parseReview(result) {\n  if (!result) {\n    return { overall_pass: false, issues: ['No result provided'], recommendations: [] };\n  }\n  try {\n    return JSON.parse(result);\n  } catch (e) {\n    const match = result.match?.(/\\{[\\s\\S]*\\}/);\n    if (match) {\n      try {\n        return JSON.parse(match[0]);\n      } catch (e2) {}\n    }\n    return { overall_pass: false, issues: ['Could not parse review response'], recommendations: [] };\n  }\n}\n\n// Safely get node output with error handling\nfunction safeGetNodeResult(nodeName) {\n  try {\n    const nodeOutput = $(nodeName);\n    if (!nodeOutput?.item?.json?.result) {\n      return { overall_pass: false, issues: [`Node '${nodeName}' has no valid output`], recommendations: [] };\n    }\n    return parseReview(nodeOutput.item.json.result);\n  } catch (e) {\n    const errorMsg = e?.message || String(e);\n    return { overall_pass: false, issues: [`Node '${nodeName}' failed: ${errorMsg}`], recommendations: [] };\n  }\n}\n\nconst contentReview = safeGetNodeResult('Content Accuracy Reviewer');\nconst visualReview = safeGetNodeResult('Visual Design Reviewer');\nconst technicalReview = safeGetNodeResult('Technical Quality Reviewer');\n\nconst allPass = contentReview.overall_pass && visualReview.overall_pass && technicalReview.overall_pass;\n\nconst allIssues = [\n  ...(contentReview.issues || []),\n  ...(visualReview.issues || []),\n  ...(technicalReview.issues || [])\n];\n\nconst allRecommendations = [\n  ...(contentReview.recommendations || []),\n  ...(visualReview.recommendations || []),\n  ...(technicalReview.recommendations || [])\n];\n\nreturn [{\n  json: {\n    allPass,\n    iteration,\n    maxIterations: 3,\n    shouldContinue: !allPass && iteration < 3,\n    reviews: {\n      content: contentReview,\n      visual: visualReview,\n      technical: technicalReview\n    },\n    allIssues,\n    allRecommendations,\n    totalIssueCount: allIssues.length\n  }\n}];"
-      },
-      "id": "aggregate-reviews",
-      "name": "Aggregate Reviews",
+      "id": "merge-config",
+      "name": "Merge Configuration",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        3600,
-        300
-      ]
+      "position": [450, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Initialize status tracking file\nconst config = $input.first().json.config;\n\nconst status = {\n  runId: config.runId,\n  status: 'initializing',\n  phase: 'file_discovery',\n  startedAt: config.startedAt,\n  config: {\n    projectName: config.projectName,\n    outputFormat: config.outputFormat,\n    processingMode: config.processingMode\n  },\n  progress: {\n    filesDiscovered: 0,\n    filesProcessed: 0,\n    filesSkipped: 0,\n    filesFailed: 0,\n    currentFile: null\n  },\n  errors: [],\n  lastUpdated: new Date().toISOString()\n};\n\nreturn [{ json: { config, status } }];"
+      },
+      "id": "init-status",
+      "name": "Initialize Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `List all transcript files in /transcripts/ and return a JSON array.\n\nSupported formats:\n- .vtt (WebVTT)\n- .srt (SubRip)\n- .txt (Plain text transcripts)\n- .json (Structured transcripts)\n\nFor each file, return:\n{\n  \"filename\": \"example.vtt\",\n  \"format\": \"vtt\",\n  \"sizeBytes\": 12345,\n  \"modifiedTime\": \"2024-01-15T10:30:00Z\"\n}\n\nOutput ONLY a JSON array, no other text:\n[{\"filename\": \"...\", \"format\": \"...\", \"sizeBytes\": ..., \"modifiedTime\": \"...\"}]`, maxTurns: 5, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "list-files",
+      "name": "List All Transcript Files",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [850, 500],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "claude-bridge-creds",
+          "name": "Claude Bridge"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $('Merge Configuration').first().json.config;\nconst response = $json.result;\n\n// Parse file list from Claude response\nlet files = [];\ntry {\n  const match = response.match(/\\[[\\s\\S]*\\]/);\n  if (match) {\n    files = JSON.parse(match[0]);\n  }\n} catch (e) {\n  throw new Error('Failed to parse file list: ' + e.message);\n}\n\n// Load previous processing state for incremental mode\nlet previousState = {};\ntry {\n  // In a real implementation, this would read from a state file\n  // For now, we'll check if summaries exist\n  previousState = {}; // Would be loaded from /transcripts/.processing-state.json\n} catch (e) {\n  previousState = {};\n}\n\n// Filter files based on processing mode\nconst processableFiles = files.map(file => {\n  const fileHash = `${file.filename}-${file.sizeBytes}-${file.modifiedTime}`;\n  const previousHash = previousState[file.filename];\n  \n  return {\n    ...file,\n    outputPath: `/transcripts/summaries/${file.filename.replace(/\\.(vtt|srt|txt|json)$/i, '.md')}`,\n    shouldProcess: !config.incrementalMode || fileHash !== previousHash,\n    fileHash,\n    skipReason: config.incrementalMode && fileHash === previousHash ? 'unchanged' : null\n  };\n});\n\nconst toProcess = processableFiles.filter(f => f.shouldProcess);\nconst toSkip = processableFiles.filter(f => !f.shouldProcess);\n\n// Update status\nconst status = {\n  phase: 'file_discovery_complete',\n  progress: {\n    filesDiscovered: files.length,\n    filesToProcess: toProcess.length,\n    filesToSkip: toSkip.length\n  }\n};\n\nconsole.log(`Found ${files.length} files: ${toProcess.length} to process, ${toSkip.length} to skip`);\n\nreturn [{\n  json: {\n    config,\n    status,\n    allFiles: processableFiles,\n    filesToProcess: toProcess,\n    skippedFiles: toSkip\n  }\n}];"
+      },
+      "id": "parse-and-filter-files",
+      "name": "Parse & Filter Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Write status update to /transcripts/.status.json:\n\n${JSON.stringify($json.status, null, 2)}\n\nOutput only: STATUS_UPDATED`, maxTurns: 3, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "write-status-discovery",
+      "name": "Write Status (Discovery)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1250, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Split files for parallel processing\nconst data = $('Parse & Filter Files').first().json;\nconst files = data.filesToProcess;\n\nif (files.length === 0) {\n  return [{ json: { ...data, noFilesToProcess: true } }];\n}\n\nreturn files.map((file, index) => ({\n  json: {\n    ...file,\n    config: data.config,\n    totalFiles: files.length,\n    fileIndex: index + 1\n  }\n}));"
+      },
+      "id": "split-files",
+      "name": "Split Files for Processing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 500]
     },
     {
       "parameters": {
         "conditions": {
           "boolean": [
             {
-              "value1": "={{ $json.allPass }}",
+              "value1": "={{ $json.noFilesToProcess }}",
               "value2": true
             }
           ]
         }
       },
-      "id": "check-pass",
-      "name": "All Passed?",
+      "id": "check-files-exist",
+      "name": "Files to Process?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [
-        3750,
-        300
-      ]
+      "position": [1650, 500]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": { "__rl": true, "mode": "list", "value": "" },
+        "mode": "each"
+      },
+      "id": "execute-subworkflow",
+      "name": "Analyze Files (Max 3 Parallel)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [1850, 600],
+      "notesInFlow": true,
+      "notes": "Configure to point to 'VTT Single File Analyzer' subworkflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate results with error handling\nconst items = $input.all();\nconst config = items[0]?.json?.config || $('Parse & Filter Files').first().json.config;\nconst allFilesData = $('Parse & Filter Files').first().json;\n\nconst results = items.map(item => item.json);\nconst successful = results.filter(r => r.success);\nconst failed = results.filter(r => !r.success);\n\nconst status = {\n  phase: 'individual_analysis_complete',\n  progress: {\n    filesProcessed: successful.length,\n    filesFailed: failed.length,\n    filesSkipped: allFilesData.skippedFiles?.length || 0\n  },\n  errors: failed.map(f => ({ file: f.filename, error: f.error || 'Unknown error' }))\n};\n\nreturn [{\n  json: {\n    config,\n    status,\n    results: {\n      successful,\n      failed,\n      skipped: allFilesData.skippedFiles || []\n    }\n  }\n}];"
+      },
+      "id": "aggregate-results",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2050, 600]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://claude-bridge:3456/claude",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are improving dashboard.html based on review feedback.\n\n## Review Results (Iteration ${$json.iteration} of ${$json.maxIterations}):\n\n### Issues Found (${$json.totalIssueCount} total):\n${$json.allIssues.map((issue, i) => `${i+1}. ${issue}`).join('\\n')}\n\n### Recommendations:\n${$json.allRecommendations.map((rec, i) => `${i+1}. ${rec}`).join('\\n')}\n\n### Review Details:\n- Content Accuracy: ${$json.reviews.content.overall_pass ? 'PASS' : 'FAIL'}\n- Visual Design: ${$json.reviews.visual.overall_pass ? 'PASS' : 'FAIL'} (${$json.reviews.visual.pass_count || 0}/8)\n- Technical Quality: ${$json.reviews.technical.overall_pass ? 'PASS' : 'FAIL'}\n\n## Your Task:\n1. Read /transcripts/dashboard.html\n2. Fix ALL issues identified above\n3. Write the improved version to /transcripts/dashboard.html\n\n## Priority Order:\n1. Technical issues (must all pass)\n2. Content accuracy issues (must all pass)\n3. Visual design issues (fix as many as possible)\n\n## Rules:\n- Do not remove working functionality\n- Preserve all existing data and content\n- Make targeted fixes for the identified issues\n- Ensure the file remains a valid, complete HTML document\n\nAfter fixing, output: \"IMPROVEMENTS COMPLETE: Fixed X issues\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 600000
-        }
+        "jsonBody": "={{ JSON.stringify({ prompt: `You are creating a comprehensive synthesis of analyzed transcript files.\n\n## Project Context\n- Project Name: ${$json.config.projectName}\n- Participants: ${$json.config.participants.join(', ') || 'Not specified'}\n- Tags: ${$json.config.tags.join(', ') || 'Not specified'}\n- Date Range: ${$json.config.dateRange || 'Not specified'}\n\n## Processing Summary\n- Files successfully processed: ${$json.results.successful.length}\n- Files skipped (unchanged): ${$json.results.skipped.length}\n- Files failed: ${$json.results.failed.length}\n\n## CRITICAL: Hierarchical Processing Required\nDue to potentially large number of files, use batch processing:\n\n### Step 1: Count and Batch\n1. List all .md files in /transcripts/summaries/\n2. Divide into batches of 20 files each\n\n### Step 2: Create Batch Summaries\nFor each batch, create: /transcripts/batch-summaries/batch-XX.md\n\n### Step 3: Meta Synthesis\nCreate /transcripts/combined-analysis.md with:\n\n### Executive Summary\n- Total sessions analyzed\n- Overall themes and focus areas\n- 5-7 key takeaways\n\n### Question Frequency Analysis\n| Question/Topic | Times Asked | Sessions |\n\n### Topic Heatmap Data\nBinary coverage matrix:\n| Topic | Session 1 | Session 2 | ... | Coverage % |\n\n### Cross-Session Insights\n- Common Themes\n- Unique Contributions\n- Knowledge Gaps\n\n### Tools & Resources Compendium\n| Resource | Type | Sessions | Context |\n\n### Investigation Priorities\nThings warranting further research\n\n### Recommended Review Order\nSuggested order for consuming content\n\n### Master Q&A Index\nAll questions organized by topic\n\n### Session Quick Reference\nOne-line summary per session\n\n## Output\nWrite to /transcripts/combined-analysis.md\nAfter completing, output: \"SYNTHESIS COMPLETE\"`, maxTurns: 30, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 3600000 }
       },
-      "id": "improvement-agent",
-      "name": "Improvement Agent",
+      "id": "synthesis",
+      "name": "Hierarchical Synthesis Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        3950,
-        400
-      ]
+      "position": [2250, 500]
     },
     {
       "parameters": {
-        "jsCode": "// Increment iteration counter\nconst currentIteration = $('Aggregate Reviews').item.json.iteration;\nconst newIteration = currentIteration + 1;\n\nreturn [{\n  json: {\n    iteration: newIteration,\n    maxIterations: 3,\n    previousIssueCount: $('Aggregate Reviews').item.json.totalIssueCount\n  }\n}];"
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Update /transcripts/.status.json with:\n\n{\n  \"phase\": \"synthesis_complete\",\n  \"progress\": {\n    \"synthesisComplete\": true\n  },\n  \"lastUpdated\": \"${new Date().toISOString()}\"\n}\n\nOutput only: STATUS_UPDATED`, maxTurns: 3, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 30000 }
       },
-      "id": "increment-counter",
-      "name": "Increment Counter",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4150,
-        400
-      ]
+      "id": "write-status-synthesis",
+      "name": "Write Status (Synthesis)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2450, 500]
     },
     {
       "parameters": {
         "conditions": {
-          "number": [
+          "boolean": [
             {
-              "value1": "={{ $json.iteration }}",
-              "value2": 3,
-              "operation": "smaller"
+              "value1": "={{ $('Merge Configuration').first().json.config.generateJson }}",
+              "value2": true
             }
           ]
         }
       },
-      "id": "check-iterations",
-      "name": "More Iterations?",
+      "id": "check-json-output",
+      "name": "Generate JSON?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [
-        4350,
-        400
-      ]
+      "position": [2650, 500]
     },
     {
       "parameters": {
-        "jsCode": "// Merge node to handle both paths (pass and max iterations)\n// Get data from whichever path we came from\nconst items = $input.all();\nconst aggregateData = items.find(item => item.json.reviews) || { json: {} };\nconst iterationData = items.find(item => item.json.iteration && !item.json.reviews) || { json: {} };\n\nconst finalIteration = aggregateData.json.iteration || iterationData.json.iteration || 'unknown';\nconst allPassed = aggregateData.json.allPass || false;\nconst maxedOut = iterationData.json.iteration >= 3;\n\nreturn [{\n  json: {\n    qualityLoopComplete: true,\n    finalIteration,\n    allPassed,\n    maxIterationsReached: maxedOut && !allPassed,\n    reviews: aggregateData.json.reviews || null\n  }\n}];"
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Create a structured JSON export of the analysis.\n\nRead /transcripts/combined-analysis.md and create /transcripts/analysis-data.json with this structure:\n\n{\n  \"metadata\": {\n    \"projectName\": \"${$('Merge Configuration').first().json.config.projectName}\",\n    \"generatedAt\": \"${new Date().toISOString()}\",\n    \"runId\": \"${$('Merge Configuration').first().json.config.runId}\",\n    \"participants\": ${JSON.stringify($('Merge Configuration').first().json.config.participants)},\n    \"tags\": ${JSON.stringify($('Merge Configuration').first().json.config.tags)},\n    \"dateRange\": \"${$('Merge Configuration').first().json.config.dateRange}\"\n  },\n  \"summary\": {\n    \"totalSessions\": <count>,\n    \"totalQuestions\": <count>,\n    \"totalTopics\": <count>,\n    \"totalTools\": <count>,\n    \"keyTakeaways\": [\"...\", \"...\"]\n  },\n  \"sessions\": [\n    {\n      \"id\": \"session-1\",\n      \"filename\": \"file.vtt\",\n      \"title\": \"...\",\n      \"type\": \"meeting|lecture|podcast|etc\",\n      \"duration\": \"XX min\",\n      \"summary\": \"...\",\n      \"topics\": [\"topic1\", \"topic2\"],\n      \"questions\": [\"q1\", \"q2\"]\n    }\n  ],\n  \"questions\": [\n    {\n      \"id\": \"q-1\",\n      \"text\": \"...\",\n      \"answer\": \"...\",\n      \"category\": \"...\",\n      \"session\": \"session-1\",\n      \"frequency\": 1\n    }\n  ],\n  \"topics\": [\n    {\n      \"id\": \"topic-1\",\n      \"name\": \"...\",\n      \"sessions\": [\"session-1\", \"session-2\"],\n      \"coverage\": 0.75\n    }\n  ],\n  \"tools\": [\n    {\n      \"id\": \"tool-1\",\n      \"name\": \"...\",\n      \"type\": \"software|website|book|framework\",\n      \"url\": \"...\",\n      \"sessions\": [\"session-1\"],\n      \"context\": \"...\"\n    }\n  ],\n  \"heatmap\": {\n    \"topics\": [\"topic1\", \"topic2\"],\n    \"sessions\": [\"session-1\", \"session-2\"],\n    \"data\": [[1, 0], [1, 1]]\n  }\n}\n\nExtract ALL data from combined-analysis.md. Output: \"JSON_EXPORT_COMPLETE\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 900000 }
       },
-      "id": "quality-complete",
-      "name": "Quality Loop Complete",
+      "id": "generate-json",
+      "name": "Generate JSON Export",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2850, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $('Merge Configuration').first().json.config.generateHtml }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-html-output",
+      "name": "Generate HTML?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [3050, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Create an interactive HTML dashboard from the analysis.\n\n## Project Branding\n- Dashboard Title: ${$('Merge Configuration').first().json.config.dashboardTitle}\n- Primary Color: ${$('Merge Configuration').first().json.config.primaryColor}\n- Secondary Color: ${$('Merge Configuration').first().json.config.secondaryColor}\n- Accent Color: ${$('Merge Configuration').first().json.config.accentColor}\n- Logo URL: ${$('Merge Configuration').first().json.config.logoUrl || 'none'}\n\n## Custom Styling Instructions\n${$('Merge Configuration').first().json.config.stylingInstructions || 'Use a clean, professional design suitable for business use.'}\n\n## Custom CSS to Include\n${$('Merge Configuration').first().json.config.customCss || '/* No custom CSS */'}\n\n## Sections to Include\n${$('Merge Configuration').first().json.config.sections.join(', ')}\n\n## Your Task\nRead /transcripts/combined-analysis.md (and /transcripts/analysis-data.json if it exists) and create an engaging HTML dashboard.\n\n## Design Requirements\n- Apply the branding colors throughout\n- If logo URL provided, display it in the header\n- Include the custom CSS in a <style> block\n- Follow the custom styling instructions\n- Only include the sections specified above\n\n## Technical Requirements\n- Single self-contained HTML file\n- All CSS/JS inline (except D3.js CDN for knowledge graph)\n- Mobile responsive with media queries\n- Dark/light mode toggle (localStorage)\n- Print stylesheet\n- Pagination for large lists (20 per page)\n- Search/filter functionality\n- Debounced search (300ms)\n\n## Required Components (include if in sections list)\n- Hero Section with stats and key takeaways\n- Question Explorer with dynamic category filters\n- Topic Heatmap (scrollable)\n- Tools Gallery with auto-detected categories\n- Session Navigator (paginated)\n- Knowledge Graph (D3.js)\n- Investigation Queue with localStorage\n- Global Search\n\n## Output\nWrite to /transcripts/dashboard.html\nOutput: \"DASHBOARD_COMPLETE\"`, maxTurns: 35, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 3600000 }
+      },
+      "id": "generate-html",
+      "name": "Generate HTML Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3250, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Add a D3.js knowledge graph to /transcripts/dashboard.html.\n\n## Requirements\n- Use D3.js v7 from CDN\n- Show top 50 most-connected nodes by default\n- Filter controls: slider for node count, checkboxes for Topics/Tools/Sessions\n- Colors: topic=${$('Merge Configuration').first().json.config.primaryColor}, tool=${$('Merge Configuration').first().json.config.secondaryColor}, session=${$('Merge Configuration').first().json.config.accentColor}\n- Draggable nodes, click to highlight, hover tooltips\n- Zoom and pan support\n- Respect dark mode toggle\n- Performance: stop simulation at alpha < 0.001\n\nOutput: \"KNOWLEDGE_GRAPH_ADDED\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 1200000 }
+      },
+      "id": "add-knowledge-graph",
+      "name": "Add Knowledge Graph",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3450, 600],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge all output paths\nconst config = $('Merge Configuration').first().json.config;\n\nconst outputs = {\n  summaries: '/transcripts/summaries/',\n  combinedAnalysis: '/transcripts/combined-analysis.md',\n  statusFile: '/transcripts/.status.json'\n};\n\nif (config.generateJson) {\n  outputs.jsonData = '/transcripts/analysis-data.json';\n}\n\nif (config.generateHtml) {\n  outputs.dashboard = '/transcripts/dashboard.html';\n}\n\nreturn [{ json: { config, outputs } }];"
+      },
+      "id": "merge-outputs",
+      "name": "Merge Outputs",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        3950,
-        200
-      ]
+      "position": [3650, 500]
     },
     {
       "parameters": {
-        "jsCode": "const qualityData = $('Quality Loop Complete').item.json;\n\nlet status = 'Pipeline Complete';\nif (qualityData.allPassed) {\n  status = 'Pipeline Complete - All Quality Checks Passed';\n} else if (qualityData.maxIterationsReached) {\n  status = 'Pipeline Complete - Max Iterations Reached (Review quality-report.md)';\n}\n\nreturn [{\n  json: {\n    status,\n    qualityLoop: {\n      iterations: qualityData.finalIteration,\n      allPassed: qualityData.allPassed,\n      maxIterationsReached: qualityData.maxIterationsReached\n    },\n    outputs: {\n      individualSummaries: '/transcripts/summaries/*.md',\n      combinedAnalysis: '/transcripts/combined-analysis.md',\n      dashboard: '/transcripts/dashboard.html'\n    },\n    note: 'Output paths relative to your configured transcripts directory',\n    completedAt: new Date().toISOString()\n  }\n}];"
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Save the processing state for incremental mode.\n\nRead all files in /transcripts/summaries/ and create /transcripts/.processing-state.json with:\n\n{\n  \"lastRun\": \"${new Date().toISOString()}\",\n  \"runId\": \"${$json.config.runId}\",\n  \"files\": {\n    \"filename.vtt\": \"hash-based-on-size-and-mtime\",\n    ...\n  }\n}\n\nOutput: \"STATE_SAVED\"`, maxTurns: 10, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 120000 }
+      },
+      "id": "save-processing-state",
+      "name": "Save Processing State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3850, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Write final status to /transcripts/.status.json:\n\n{\n  \"status\": \"complete\",\n  \"runId\": \"${$json.config.runId}\",\n  \"completedAt\": \"${new Date().toISOString()}\",\n  \"outputs\": ${JSON.stringify($json.outputs)},\n  \"config\": {\n    \"projectName\": \"${$json.config.projectName}\",\n    \"outputFormat\": \"${$json.config.outputFormat}\"\n  }\n}\n\nOutput: \"COMPLETE\"`, maxTurns: 3, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "write-final-status",
+      "name": "Write Final Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4050, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $('Merge Configuration').first().json.config.notificationWebhook }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "check-notification",
+      "name": "Send Notification?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [4250, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Merge Configuration').first().json.config.notificationWebhook }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: `✅ Transcript Analysis Complete\\n\\nProject: ${$('Merge Configuration').first().json.config.projectName}\\nRun ID: ${$('Merge Configuration').first().json.config.runId}\\n\\nOutputs generated:\\n${Object.entries($('Merge Outputs').first().json.outputs).map(([k,v]) => `• ${k}: ${v}`).join('\\n')}`, username: 'VTT Analyzer', icon_emoji: ':chart_with_upwards_trend:' }) }}",
+        "options": { "timeout": 10000 }
+      },
+      "id": "send-notification",
+      "name": "Send Completion Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4450, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $('Merge Configuration').first().json.config;\nconst outputs = $('Merge Outputs').first().json.outputs;\n\nreturn [{\n  json: {\n    status: 'Pipeline Complete',\n    runId: config.runId,\n    projectName: config.projectName,\n    completedAt: new Date().toISOString(),\n    outputs,\n    config: {\n      outputFormat: config.outputFormat,\n      processingMode: config.processingMode,\n      sectionsIncluded: config.sections\n    }\n  }\n}];"
       },
       "id": "final-output",
       "name": "Pipeline Complete",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        4150,
-        200
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineAll",
-        "options": {}
-      },
-      "id": "merge-reviews-1",
-      "name": "Merge Reviews 1",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        3400,
-        250
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineAll",
-        "options": {}
-      },
-      "id": "merge-reviews-2",
-      "name": "Merge Reviews 2",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        3500,
-        300
-      ]
+      "position": [4650, 500]
     }
   ],
   "connections": {
     "Manual Trigger": {
-      "main": [
-        [
-          {
-            "node": "List Files",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Merge Configuration", "type": "main", "index": 0 }]]
     },
-    "List Files": {
-      "main": [
-        [
-          {
-            "node": "Parse File List",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "Webhook Trigger": {
+      "main": [[{ "node": "Merge Configuration", "type": "main", "index": 0 }]]
     },
-    "Parse File List": {
+    "Configuration Form": {
+      "main": [[{ "node": "Merge Configuration", "type": "main", "index": 0 }]]
+    },
+    "Merge Configuration": {
+      "main": [[{ "node": "Initialize Status", "type": "main", "index": 0 }]]
+    },
+    "Initialize Status": {
+      "main": [[{ "node": "List All Transcript Files", "type": "main", "index": 0 }]]
+    },
+    "List All Transcript Files": {
+      "main": [[{ "node": "Parse & Filter Files", "type": "main", "index": 0 }]]
+    },
+    "Parse & Filter Files": {
+      "main": [[{ "node": "Write Status (Discovery)", "type": "main", "index": 0 }]]
+    },
+    "Write Status (Discovery)": {
+      "main": [[{ "node": "Split Files for Processing", "type": "main", "index": 0 }]]
+    },
+    "Split Files for Processing": {
+      "main": [[{ "node": "Files to Process?", "type": "main", "index": 0 }]]
+    },
+    "Files to Process?": {
       "main": [
-        [
-          {
-            "node": "Analyze Files (Max 3 Parallel)",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Hierarchical Synthesis Agent", "type": "main", "index": 0 }],
+        [{ "node": "Analyze Files (Max 3 Parallel)", "type": "main", "index": 0 }]
       ]
     },
     "Analyze Files (Max 3 Parallel)": {
-      "main": [
-        [
-          {
-            "node": "Analysis Complete",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
     },
-    "Analysis Complete": {
-      "main": [
-        [
-          {
-            "node": "Hierarchical Synthesis Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "Aggregate Results": {
+      "main": [[{ "node": "Hierarchical Synthesis Agent", "type": "main", "index": 0 }]]
     },
     "Hierarchical Synthesis Agent": {
+      "main": [[{ "node": "Write Status (Synthesis)", "type": "main", "index": 0 }]]
+    },
+    "Write Status (Synthesis)": {
+      "main": [[{ "node": "Generate JSON?", "type": "main", "index": 0 }]]
+    },
+    "Generate JSON?": {
       "main": [
-        [
-          {
-            "node": "Visualization Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Generate JSON Export", "type": "main", "index": 0 }],
+        [{ "node": "Generate HTML?", "type": "main", "index": 0 }]
       ]
     },
-    "Visualization Agent": {
+    "Generate JSON Export": {
+      "main": [[{ "node": "Generate HTML?", "type": "main", "index": 0 }]]
+    },
+    "Generate HTML?": {
       "main": [
-        [
-          {
-            "node": "Knowledge Graph Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Merge Outputs", "type": "main", "index": 0 }],
+        [{ "node": "Generate HTML Dashboard", "type": "main", "index": 0 }]
       ]
     },
-    "Knowledge Graph Agent": {
+    "Generate HTML Dashboard": {
+      "main": [[{ "node": "Add Knowledge Graph", "type": "main", "index": 0 }]]
+    },
+    "Add Knowledge Graph": {
+      "main": [[{ "node": "Merge Outputs", "type": "main", "index": 0 }]]
+    },
+    "Merge Outputs": {
+      "main": [[{ "node": "Save Processing State", "type": "main", "index": 0 }]]
+    },
+    "Save Processing State": {
+      "main": [[{ "node": "Write Final Status", "type": "main", "index": 0 }]]
+    },
+    "Write Final Status": {
+      "main": [[{ "node": "Send Notification?", "type": "main", "index": 0 }]]
+    },
+    "Send Notification?": {
       "main": [
-        [
-          {
-            "node": "Init Quality Loop",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Send Completion Notification", "type": "main", "index": 0 }],
+        [{ "node": "Pipeline Complete", "type": "main", "index": 0 }]
       ]
     },
-    "Form: Coverage Metrics Loop": {
-      "main": [
-        [
-          {
-            "node": "Init Quality Loop",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Init Quality Loop": {
-      "main": [
-        [
-          {
-            "node": "Coverage Metrics Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Coverage Metrics Agent": {
-      "main": [
-        [
-          {
-            "node": "Questions Completion Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Questions Completion Agent": {
-      "main": [
-        [
-          {
-            "node": "Tools Completion Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Tools Completion Agent": {
-      "main": [
-        [
-          {
-            "node": "Sessions Completion Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Sessions Completion Agent": {
-      "main": [
-        [
-          {
-            "node": "Topics Completion Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Topics Completion Agent": {
-      "main": [
-        [
-          {
-            "node": "Coverage Metrics Update Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Coverage Metrics Update Agent": {
-      "main": [
-        [
-          {
-            "node": "Tool Links Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Tool Links Agent": {
-      "main": [
-        [
-          {
-            "node": "Animation Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Animation Agent": {
-      "main": [
-        [
-          {
-            "node": "Reading Path Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Reading Path Agent": {
-      "main": [
-        [
-          {
-            "node": "Content Accuracy Reviewer",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Visual Design Reviewer",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Technical Quality Reviewer",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Content Accuracy Reviewer": {
-      "main": [
-        [
-          {
-            "node": "Merge Reviews 1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Visual Design Reviewer": {
-      "main": [
-        [
-          {
-            "node": "Merge Reviews 1",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Technical Quality Reviewer": {
-      "main": [
-        [
-          {
-            "node": "Merge Reviews 2",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Aggregate Reviews": {
-      "main": [
-        [
-          {
-            "node": "All Passed?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "All Passed?": {
-      "main": [
-        [
-          {
-            "node": "Quality Loop Complete",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Improvement Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Improvement Agent": {
-      "main": [
-        [
-          {
-            "node": "Increment Counter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Increment Counter": {
-      "main": [
-        [
-          {
-            "node": "More Iterations?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "More Iterations?": {
-      "main": [
-        [
-          {
-            "node": "Coverage Metrics Agent",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Quality Loop Complete",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Quality Loop Complete": {
-      "main": [
-        [
-          {
-            "node": "Pipeline Complete",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Reviews 1": {
-      "main": [
-        [
-          {
-            "node": "Merge Reviews 2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Reviews 2": {
-      "main": [
-        [
-          {
-            "node": "Aggregate Reviews",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "Send Completion Notification": {
+      "main": [[{ "node": "Pipeline Complete", "type": "main", "index": 0 }]]
     }
   },
   "settings": {
