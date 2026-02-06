@@ -1,0 +1,56 @@
+{
+  "name": "VTT Single File Analyzer",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "workflow-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://claude-bridge:3456/claude",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `You are analyzing a single lecture transcript file.\n\n## Your Task\nRead the file \\`/transcripts/${$json.filename}\\` and create a comprehensive markdown summary.\n\n## Create Output Directory\nFirst, ensure /transcripts/summaries/ directory exists (mkdir -p /transcripts/summaries).\n\n## Extract From This File:\n\n### Questions & Answers\n- Every question asked (by instructor or participants)\n- The answer or response given\n- Follow-up questions and clarifications\n- Questions left unanswered or deferred\n\n### Content Coverage\n- Main topics discussed (in order of appearance)\n- Key concepts introduced with definitions\n- Technical terms and jargon explained\n- Examples and case studies mentioned\n\n### Actionable Information\n- Tools, software, or platforms mentioned (with context)\n- Websites, resources, or references cited\n- Methodologies or frameworks discussed\n- Best practices or recommendations given\n\n### Notable Moments\n- Particularly insightful explanations\n- Controversial or debated points\n- Surprising facts or statistics\n- Personal anecdotes or real-world experiences shared\n\n### Metadata\n- Apparent topic/title of the session\n- Estimated duration (from timestamps)\n- Number of speakers (if distinguishable)\n- Overall tone (lecture, Q&A, workshop, discussion)\n\n## Output Format\nWrite to \\`${$json.outputPath}\\`:\n\n# [Session Title/Topic]\n\n**Source**: ${$json.filename}\n**Duration**: ~XX minutes\n**Format**: [Lecture/Q&A/Workshop/etc.]\n\n## Questions Asked & Answered\n\n### Q1: [Question text]\n**Answer**: [Summary of answer]\n**Timestamp**: [if available]\n\n[...continue for all questions...]\n\n## Key Topics Covered\n\n### [Topic 1]\n[2-3 sentence summary]\n- Key point 1\n- Key point 2\n\n[...continue for all topics...]\n\n## Tools & Resources Mentioned\n- **[Tool Name]**: [Context of how it was mentioned]\n- **[Website]**: [Why it was referenced]\n\n## Notable Quotes & Insights\n> \"[Direct quote if notable]\"\n- [Insight or observation]\n\n## Summary\n[3-5 sentence overview of the entire session]\n\n## Instructions\n- Be thorough - capture EVERYTHING of value\n- Preserve specificity - don't generalize away details\n- Note uncertainty - if something is unclear, say so\n- After writing the file, output only: \"COMPLETE: ${$json.filename}\"\n\nRead /transcripts/${$json.filename} and begin.`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "analyze-vtt",
+      "name": "Analyze VTT File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Return success status for main workflow\nconst result = $json.result || '';\nconst filename = $('Execute Workflow Trigger').item.json.filename;\n\nreturn [{\n  json: {\n    success: true,\n    filename: filename,\n    result: result,\n    completedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "return-result",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [{ "node": "Analyze VTT File", "type": "main", "index": 0 }]
+      ]
+    },
+    "Analyze VTT File": {
+      "main": [
+        [{ "node": "Return Result", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "maxConcurrency": 3
+  }
+}

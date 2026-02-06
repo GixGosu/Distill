@@ -1,0 +1,30 @@
+# Output files (users generate their own)
+*.md
+!README.md
+!CONTRIBUTING.md
+!docs/*.md
+
+# n8n execution data
+.n8n/
+
+# Transcripts (user data)
+transcripts/
+summaries/
+batch-summaries/
+dashboard.html
+combined-analysis.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
