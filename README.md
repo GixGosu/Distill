@@ -7,6 +7,9 @@ An AI-powered n8n workflow that extracts insights from meetings, calls, intervie
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![n8n](https://img.shields.io/badge/n8n-1.0+-orange.svg)
 
+![Distill Dashboard Example](distill.png)
+*Example dashboard generated from 100+ lecture transcripts*
+
 ---
 
 ## What Distill Does
