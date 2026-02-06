@@ -376,4 +376,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 **Stop losing insights in recordings. Start distilling intelligence.**
 
-*Created by [@brineshrimp](https://github.com/brineshrimp) / BrineShrimp Games*
+*Created by Joshua Burdick — [GitHub](https://github.com/GixGosu) | [Cyberarctica](https://www.cyberarctica.com/)*
