@@ -1,13 +1,15 @@
-# Transcript Intelligence Dashboard
+# Distill
 
-**Transform any recorded conversation into actionable intelligence.**
+**Distill conversations into intelligence.**
 
 An AI-powered n8n workflow that extracts insights from meetings, calls, interviews, and any recorded conversation—then synthesizes them into interactive dashboards and structured data.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![n8n](https://img.shields.io/badge/n8n-1.0+-orange.svg)
 
-## What It Does
+---
+
+## What Distill Does
 
 1. **Pulls transcripts** directly from Zoom, Google Drive, Otter.ai, S3, or local files
 2. **Analyzes each recording** to extract questions, decisions, action items, and insights
@@ -22,7 +24,7 @@ All configurable. All automated. All from a single workflow.
 ## Use Cases
 
 ### 🏢 **Meeting Intelligence for Teams**
-Analyze weeks of team meetings to surface:
+Distill weeks of team meetings to surface:
 - Recurring blockers and risks
 - Decisions made (and by whom)
 - Action items that fell through the cracks
@@ -31,7 +33,7 @@ Analyze weeks of team meetings to surface:
 *"What did we decide about the API migration across all our standups?"*
 
 ### 📞 **Sales Call Analysis**
-Process recorded sales calls to extract:
+Distill recorded sales calls to extract:
 - Common objections and responses
 - Competitor mentions
 - Pricing discussions
@@ -40,7 +42,7 @@ Process recorded sales calls to extract:
 *"What objections came up most in Q1 demos?"*
 
 ### 🎯 **Customer Research Synthesis**
-Analyze user interviews and focus groups:
+Distill user interviews and focus groups:
 - Pain points by frequency
 - Feature requests across segments
 - Sentiment patterns
@@ -49,7 +51,7 @@ Analyze user interviews and focus groups:
 *"What do enterprise customers say about onboarding?"*
 
 ### 🎓 **Training & Educational Content**
-Process lecture recordings, workshops, webinars:
+Distill lecture recordings, workshops, webinars:
 - Key concepts and definitions
 - Q&A index for reference
 - Topic coverage heatmap
@@ -58,7 +60,7 @@ Process lecture recordings, workshops, webinars:
 *"Create a study guide from this semester's lectures."*
 
 ### 🎙️ **Podcast & Content Management**
-Analyze podcast episodes for:
+Distill podcast episodes for:
 - Guest insights and quotable moments
 - Topic index across episodes
 - Resource/tool mentions
@@ -67,7 +69,7 @@ Analyze podcast episodes for:
 *"What tools have guests recommended across all episodes?"*
 
 ### ⚖️ **Legal & Compliance Review**
-Process depositions, hearings, compliance calls:
+Distill depositions, hearings, compliance calls:
 - Key statements and admissions
 - Timeline of events mentioned
 - Contradictions across sessions
@@ -76,7 +78,7 @@ Process depositions, hearings, compliance calls:
 *"Flag all mentions of the contract terms across depositions."*
 
 ### 🔬 **Research Interview Analysis**
-Synthesize qualitative research:
+Distill qualitative research:
 - Theme extraction across interviews
 - Quote attribution
 - Coding and categorization
@@ -85,7 +87,7 @@ Synthesize qualitative research:
 *"What themes emerged from the 30 user interviews?"*
 
 ### 📊 **Executive Briefing Automation**
-Turn meeting recordings into executive summaries:
+Distill meeting recordings into executive summaries:
 - Key decisions and rationale
 - Risk and blocker summary
 - Progress against goals
@@ -95,7 +97,7 @@ Turn meeting recordings into executive summaries:
 
 ---
 
-## How It Works
+## How Distill Works
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -227,8 +229,8 @@ Issues are auto-fixed. Loop repeats until quality passes.
 ## Quick Start
 
 ### 1. Import Workflows into n8n
-- `workflows/vtt-analyzer-main.json`
-- `workflows/vtt-analyzer-single-file.json`
+- `workflows/distill-main.json`
+- `workflows/distill-analyzer.json`
 
 ### 2. Configure Claude Bridge
 See [docs/claude-bridge-setup.md](docs/claude-bridge-setup.md)
@@ -238,7 +240,7 @@ Open the form, set your options, submit. That's it.
 
 ### 4. Or Trigger via Webhook
 ```bash
-curl -X POST https://your-n8n/webhook/analyze-transcripts \
+curl -X POST https://your-n8n/webhook/distill \
   -H "Content-Type: application/json" \
   -d '{
     "projectName": "Q1 Sales Calls",
@@ -308,7 +310,7 @@ Structured export for programmatic use:
 
 ---
 
-## Example Workflows
+## Example Configurations
 
 ### Weekly Team Intelligence
 ```json
@@ -369,6 +371,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-**Stop losing insights in recordings. Start building intelligence.**
+**Stop losing insights in recordings. Start distilling intelligence.**
 
 *Created by [@brineshrimp](https://github.com/brineshrimp) / BrineShrimp Games*

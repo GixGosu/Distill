@@ -1,5 +1,5 @@
 {
-  "name": "VTT Single File Analyzer",
+  "name": "Distill - File Analyzer",
   "nodes": [
     {
       "parameters": {},

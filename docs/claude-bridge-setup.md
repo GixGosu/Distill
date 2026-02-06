@@ -1,6 +1,6 @@
 # Claude Bridge Setup Guide
 
-The VTT Analyzer workflow requires a "Claude Bridge" - an HTTP service that provides Claude with computer use capabilities (file system access, bash commands).
+The Distill workflow requires a "Claude Bridge" - an HTTP service that provides Claude with computer use capabilities (file system access, bash commands).
 
 ## What is Claude Bridge?
 
