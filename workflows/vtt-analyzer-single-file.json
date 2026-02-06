@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "workflow-trigger",
+      "id": "trigger",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
@@ -11,10 +11,10 @@
     },
     {
       "parameters": {
-        "jsCode": "// Extract file info and determine format\nconst file = $input.first().json;\n\nconst formatMap = {\n  'vtt': 'WebVTT',\n  'srt': 'SubRip',\n  'txt': 'Plain Text',\n  'json': 'Structured JSON'\n};\n\nconst format = file.format || file.filename.split('.').pop().toLowerCase();\n\nreturn [{\n  json: {\n    ...file,\n    format,\n    formatName: formatMap[format] || 'Unknown',\n    processingStarted: new Date().toISOString()\n  }\n}];"
+        "jsCode": "const file = $input.first().json;\n\nconst formatMap = { 'vtt': 'WebVTT', 'srt': 'SubRip', 'txt': 'Plain Text', 'json': 'Structured JSON' };\nconst format = file.format || file.filename.split('.').pop().toLowerCase();\n\n// Build custom extractor instructions\nconst customExtractors = file.customExtractors || [];\nlet extractorInstructions = '';\nif (customExtractors.length > 0) {\n  extractorInstructions = '\\n\\n## Custom Extractors (REQUIRED - Add these sections)\\n';\n  customExtractors.forEach((e, i) => {\n    extractorInstructions += `\\n### ${i+1}. ${e.name}\\n`;\n    if (e.pattern) extractorInstructions += `- Pattern to match: ${e.pattern}\\n`;\n    if (e.instructions) extractorInstructions += `- Instructions: ${e.instructions}\\n`;\n    extractorInstructions += `- Output as a dedicated section in the summary\\n`;\n  });\n}\n\nreturn [{\n  json: {\n    ...file,\n    format,\n    formatName: formatMap[format] || 'Unknown',\n    extractorInstructions,\n    customExtractors,\n    processingStarted: new Date().toISOString()\n  }\n}];"
       },
-      "id": "detect-format",
-      "name": "Detect Format",
+      "id": "prepare",
+      "name": "Prepare Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [400, 300]
@@ -25,13 +25,11 @@
         "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are analyzing a transcript file. Handle format conversion if needed.\n\n## File Information\n- Filename: ${$json.filename}\n- Format: ${$json.formatName} (.${$json.format})\n- Processing: File ${$json.fileIndex} of ${$json.totalFiles}\n\n## Format-Specific Handling\n\n### If .srt (SubRip):\nSubRip format uses numbered sequences:\n1\n00:00:01,000 --> 00:00:05,000\nText here\n\nParse the timestamps and text, ignore sequence numbers.\n\n### If .txt (Plain Text):\nNo timestamps available. Focus on content extraction.\n\n### If .json (Structured):\nLook for common structures:\n- { \"segments\": [{ \"text\": \"...\", \"start\": 0, \"end\": 5 }] } (Whisper)\n- { \"results\": { \"transcripts\": [...] } } (AWS Transcribe)\n- { \"transcript\": \"...\" } (Simple format)\n\n### If .vtt (WebVTT):\nStandard WebVTT with WEBVTT header and timestamps.\n\n## Your Task\n1. Read /transcripts/${$json.filename}\n2. Parse the format appropriately\n3. Ensure /transcripts/summaries/ exists (mkdir -p)\n4. Create comprehensive analysis\n\n## First: Identify the Content Type\nDetermine what kind of content this is:\n- Meeting (internal team, client, etc.)\n- Lecture/Educational session\n- Podcast episode\n- Interview (job, media, research)\n- Conference talk/presentation\n- Customer call (sales, support)\n- Focus group/User research\n- Webinar\n- Other\n\n## Extract From This File:\n\n### Participants & Roles\n- Who is speaking (names, roles, or speaker labels)\n- Number of distinct speakers\n\n### Questions & Discussion Points\n- Questions asked by anyone\n- Answers or responses given\n- Unresolved questions\n\n### Key Content\n- Main topics discussed\n- Key points, decisions, or conclusions\n- Important facts, figures, or data\n- Technical terms or jargon\n\n### Actionable Items\n- Action items or tasks assigned\n- Deadlines mentioned\n- Tools, resources, or references cited\n\n### Notable Moments\n- Key insights or revelations\n- Points of agreement or disagreement\n\n### Metadata\n- Apparent title/subject\n- Estimated duration (from timestamps if available)\n\n## Output Format\nWrite to ${$json.outputPath}:\n\n# [Title/Subject]\n\n**Source**: ${$json.filename}\n**Type**: [Content type]\n**Format**: ${$json.formatName}\n**Duration**: ~XX minutes (if determinable)\n**Participants**: [List if identifiable]\n\n## Key Questions & Responses\n[Extract all Q&A]\n\n## Main Topics Covered\n[Topic summaries with key points]\n\n## Action Items & Follow-ups\n- [ ] [Action items if any]\n\n## Tools & Resources Mentioned\n[List with context]\n\n## Notable Quotes & Insights\n[Key quotes and observations]\n\n## Summary\n[3-5 sentence overview]\n\n## Instructions\n- Be thorough - capture EVERYTHING of value\n- Adapt to the content type\n- Note if the format caused any parsing issues\n- After writing, output only: \"COMPLETE: ${$json.filename}\"\n\nRead /transcripts/${$json.filename} and begin.`, maxTurns: 15, workingDir: '/transcripts' }) }}",
-        "options": {
-          "timeout": 600000
-        },
+        "jsonBody": "={{ JSON.stringify({ prompt: `Analyze transcript file with format handling and custom extraction.\n\n## File: ${$json.filename}\n## Format: ${$json.formatName} (.${$json.format})\n## Progress: File ${$json.fileIndex} of ${$json.totalFiles}\n\n## Format Handling\n- .srt: Parse numbered sequences, extract timestamps and text\n- .txt: No timestamps, focus on content\n- .json: Look for Whisper/AWS Transcribe/simple formats\n- .vtt: Standard WebVTT parsing\n\n## Task\n1. Read /transcripts/${$json.filename}\n2. mkdir -p /transcripts/summaries\n3. Create comprehensive analysis\n\n## Content Type Detection\nFirst, identify the content type:\n- Meeting / Lecture / Podcast / Interview / Conference / Customer call / Focus group / Webinar / Other\n\n## Standard Extraction\n\n### Participants & Roles\n- Speakers, roles, count\n\n### Questions & Discussion\n- All questions asked\n- Answers given\n- Unresolved items\n\n### Key Content\n- Main topics\n- Key points, decisions\n- Facts, figures, data\n- Technical terms\n\n### Actionable Items\n- Action items with owners\n- Deadlines\n- Tools/resources mentioned\n\n### Notable Moments\n- Key insights\n- Points of agreement/disagreement${$json.extractorInstructions}\n\n## Output Format\nWrite to ${$json.outputPath}:\n\n# [Title/Subject]\n\n**Source**: ${$json.filename}\n**Type**: [Content type]\n**Format**: ${$json.formatName}\n**Duration**: ~XX minutes\n**Participants**: [List]\n\n## Key Questions & Responses\n[All Q&A]\n\n## Main Topics Covered\n[Topics with key points]\n\n## Action Items & Follow-ups\n- [ ] [Items]\n\n## Tools & Resources Mentioned\n[List with context]\n\n## Notable Quotes & Insights\n[Key quotes]\n\n## Summary\n[3-5 sentences]\n\n${$json.customExtractors.map(e => `## ${e.name}\\n[Extracted data for ${e.name}]\\n`).join('\\n')}\n\nAfter writing, output only: \"COMPLETE: ${$json.filename}\"`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 600000 },
         "continueOnFail": true
       },
-      "id": "analyze-file",
+      "id": "analyze",
       "name": "Analyze File",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -40,60 +38,19 @@
     },
     {
       "parameters": {
-        "jsCode": "// Handle success or failure with detailed error info\nconst inputData = $('Detect Format').first().json;\nconst result = $json;\n\n// Check if the request failed\nconst isError = result.error || result.statusCode >= 400 || \n                (result.result && result.result.includes('Error'));\n\nif (isError) {\n  const errorMessage = result.error?.message || \n                       result.message || \n                       result.result || \n                       'Unknown error during analysis';\n  \n  console.log(`Failed to process ${inputData.filename}: ${errorMessage}`);\n  \n  return [{\n    json: {\n      success: false,\n      filename: inputData.filename,\n      format: inputData.format,\n      error: errorMessage,\n      errorDetails: {\n        statusCode: result.statusCode,\n        attemptedAt: new Date().toISOString()\n      }\n    }\n  }];\n}\n\n// Success case\nconst resultText = result.result || '';\nconst isComplete = resultText.includes('COMPLETE:') || resultText.includes('COMPLETE');\n\nreturn [{\n  json: {\n    success: isComplete,\n    filename: inputData.filename,\n    format: inputData.format,\n    outputPath: inputData.outputPath,\n    result: resultText,\n    completedAt: new Date().toISOString(),\n    processingTime: Date.now() - new Date(inputData.processingStarted).getTime()\n  }\n}];"
+        "jsCode": "const input = $('Prepare Analysis').first().json;\nconst result = $json;\n\nconst isError = result.error || result.statusCode >= 400 || (result.result && result.result.includes('Error'));\n\nif (isError) {\n  return [{\n    json: {\n      success: false,\n      filename: input.filename,\n      format: input.format,\n      error: result.error?.message || result.message || result.result || 'Unknown error',\n      customExtractorsRun: input.customExtractors.map(e => e.name)\n    }\n  }];\n}\n\nconst isComplete = (result.result || '').includes('COMPLETE');\n\nreturn [{\n  json: {\n    success: isComplete,\n    filename: input.filename,\n    format: input.format,\n    outputPath: input.outputPath,\n    customExtractorsRun: input.customExtractors.map(e => e.name),\n    completedAt: new Date().toISOString()\n  }\n}];"
       },
       "id": "handle-result",
       "name": "Handle Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [800, 300]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `Update status file for progress tracking.\n\nAppend to /transcripts/.status.json or create if not exists:\n\nUpdate the progress.currentFile to: ${$json.filename}\nUpdate the progress.filesProcessed to increment by 1 if success\nUpdate the progress.filesFailed to increment by 1 if failure\nSet lastUpdated to current time\n\nResult: ${$json.success ? 'SUCCESS' : 'FAILED - ' + ($json.error || 'unknown')}\n\nOutput only: STATUS_UPDATED`, maxTurns: 3, workingDir: '/transcripts' }) }}",
-        "options": { "timeout": 30000 },
-        "continueOnFail": true
-      },
-      "id": "update-status",
-      "name": "Update Progress Status",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1000, 300]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Return final result to main workflow\nconst result = $('Handle Result').first().json;\n\nreturn [{ json: result }];"
-      },
-      "id": "return-result",
-      "name": "Return Result",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1200, 300]
     }
   ],
   "connections": {
-    "Execute Workflow Trigger": {
-      "main": [[{ "node": "Detect Format", "type": "main", "index": 0 }]]
-    },
-    "Detect Format": {
-      "main": [[{ "node": "Analyze File", "type": "main", "index": 0 }]]
-    },
-    "Analyze File": {
-      "main": [[{ "node": "Handle Result", "type": "main", "index": 0 }]]
-    },
-    "Handle Result": {
-      "main": [[{ "node": "Update Progress Status", "type": "main", "index": 0 }]]
-    },
-    "Update Progress Status": {
-      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
-    }
+    "Execute Workflow Trigger": { "main": [[{ "node": "Prepare Analysis", "type": "main", "index": 0 }]] },
+    "Prepare Analysis": { "main": [[{ "node": "Analyze File", "type": "main", "index": 0 }]] },
+    "Analyze File": { "main": [[{ "node": "Handle Result", "type": "main", "index": 0 }]] }
   },
-  "settings": {
-    "executionOrder": "v1",
-    "maxConcurrency": 3
-  }
+  "settings": { "executionOrder": "v1", "maxConcurrency": 3 }
 }

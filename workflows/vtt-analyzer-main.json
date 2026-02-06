@@ -7,7 +7,7 @@
       "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [200, 300]
+      "position": [200, 500]
     },
     {
       "parameters": {
@@ -19,109 +19,137 @@
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
-      "position": [200, 500],
+      "position": [200, 700],
       "webhookId": "analyze-transcripts"
     },
     {
       "parameters": {
         "formTitle": "Transcript Analysis Configuration",
-        "formDescription": "Configure your transcript analysis run. All fields are optional - defaults will be used if not specified.",
+        "formDescription": "Configure your transcript analysis. All fields optional except Output Format.",
         "formFields": {
           "values": [
             {
               "fieldLabel": "Project Name",
               "fieldType": "text",
-              "placeholder": "Q1 Planning Sessions",
-              "requiredField": false
+              "placeholder": "Q1 Planning Sessions"
             },
             {
               "fieldLabel": "Dashboard Title",
               "fieldType": "text",
-              "placeholder": "Transcript Analysis Dashboard",
-              "requiredField": false
+              "placeholder": "Transcript Analysis Dashboard"
             },
             {
               "fieldLabel": "Primary Brand Color",
               "fieldType": "text",
-              "placeholder": "#2563eb",
-              "requiredField": false
+              "placeholder": "#2563eb"
             },
             {
               "fieldLabel": "Secondary Brand Color",
               "fieldType": "text",
-              "placeholder": "#7c3aed",
-              "requiredField": false
+              "placeholder": "#7c3aed"
             },
             {
-              "fieldLabel": "Logo URL (optional)",
+              "fieldLabel": "Logo URL",
               "fieldType": "text",
-              "placeholder": "https://example.com/logo.png",
-              "requiredField": false
+              "placeholder": "https://example.com/logo.png"
             },
             {
-              "fieldLabel": "Custom CSS (optional)",
+              "fieldLabel": "Custom CSS",
               "fieldType": "textarea",
-              "placeholder": "/* Add custom styles here */",
-              "requiredField": false
+              "placeholder": "/* Custom styles */"
             },
             {
-              "fieldLabel": "Custom Styling Instructions",
+              "fieldLabel": "Styling Instructions",
               "fieldType": "textarea",
-              "placeholder": "Describe any specific styling preferences: dark theme, minimal design, corporate style, etc.",
-              "requiredField": false
+              "placeholder": "Describe styling preferences: dark theme, minimal, corporate, etc."
             },
             {
-              "fieldLabel": "Participants (comma-separated)",
+              "fieldLabel": "Participants",
               "fieldType": "text",
-              "placeholder": "Sarah Chen, Mike Johnson, Jen Smith",
-              "requiredField": false
+              "placeholder": "Sarah Chen, Mike Johnson"
             },
             {
-              "fieldLabel": "Tags (comma-separated)",
+              "fieldLabel": "Tags",
               "fieldType": "text",
-              "placeholder": "planning, roadmap, quarterly",
-              "requiredField": false
+              "placeholder": "planning, roadmap, quarterly"
             },
             {
               "fieldLabel": "Date Range",
               "fieldType": "text",
-              "placeholder": "2024-01-01 to 2024-03-31",
-              "requiredField": false
+              "placeholder": "2024-01-01 to 2024-03-31"
             },
             {
               "fieldLabel": "Output Format",
               "fieldType": "dropdown",
-              "fieldOptions": {
-                "values": [
-                  { "option": "HTML Dashboard Only" },
-                  { "option": "JSON Data Only" },
-                  { "option": "Both HTML and JSON" }
-                ]
-              },
-              "requiredField": true
+              "requiredField": true,
+              "fieldOptions": { "values": [
+                { "option": "HTML Dashboard Only" },
+                { "option": "JSON Data Only" },
+                { "option": "Both HTML and JSON" }
+              ]}
             },
             {
               "fieldLabel": "Processing Mode",
               "fieldType": "dropdown",
-              "fieldOptions": {
-                "values": [
-                  { "option": "Full (reprocess all files)" },
-                  { "option": "Incremental (new/changed files only)" }
-                ]
-              },
-              "requiredField": true
+              "requiredField": true,
+              "fieldOptions": { "values": [
+                { "option": "Full (reprocess all)" },
+                { "option": "Incremental (new/changed only)" }
+              ]}
             },
             {
               "fieldLabel": "Sections to Include",
               "fieldType": "text",
-              "placeholder": "all (or: questions,topics,tools,sessions,graph)",
-              "requiredField": false
+              "placeholder": "all (or: questions,topics,tools,sessions,graph)"
             },
             {
-              "fieldLabel": "Notification Webhook URL (optional)",
+              "fieldLabel": "Custom Extractors (JSON array)",
+              "fieldType": "textarea",
+              "placeholder": "[{\"name\": \"Action Items\", \"pattern\": \"action item|todo|assigned to\", \"instructions\": \"Extract all action items with owner and deadline\"}]"
+            },
+            {
+              "fieldLabel": "Enable Quality Review Loop",
+              "fieldType": "dropdown",
+              "fieldOptions": { "values": [
+                { "option": "Yes (recommended)" },
+                { "option": "No (faster)" }
+              ]}
+            },
+            {
+              "fieldLabel": "Max Quality Iterations",
               "fieldType": "text",
-              "placeholder": "https://hooks.slack.com/...",
-              "requiredField": false
+              "placeholder": "3"
+            },
+            {
+              "fieldLabel": "Source Integration",
+              "fieldType": "dropdown",
+              "fieldOptions": { "values": [
+                { "option": "Local files (/transcripts/)" },
+                { "option": "Zoom Cloud Recordings" },
+                { "option": "Google Drive folder" },
+                { "option": "Otter.ai webhook" },
+                { "option": "AWS S3 bucket" }
+              ]}
+            },
+            {
+              "fieldLabel": "Source Config (JSON)",
+              "fieldType": "textarea",
+              "placeholder": "{\"folderId\": \"...\", \"apiKey\": \"...\"}"
+            },
+            {
+              "fieldLabel": "Export Destinations",
+              "fieldType": "text",
+              "placeholder": "local (or: gdrive,notion,s3,email,airtable)"
+            },
+            {
+              "fieldLabel": "Export Config (JSON)",
+              "fieldType": "textarea",
+              "placeholder": "{\"gdrive\": {\"folderId\": \"...\"}, \"email\": {\"to\": \"team@example.com\"}}"
+            },
+            {
+              "fieldLabel": "Notification Webhook",
+              "fieldType": "text",
+              "placeholder": "https://hooks.slack.com/..."
             }
           ]
         },
@@ -131,101 +159,108 @@
       "name": "Configuration Form",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.1,
-      "position": [200, 700],
+      "position": [200, 900],
       "webhookId": "config-form"
     },
     {
       "parameters": {
-        "jsCode": "// Merge configuration from all trigger types\nconst input = $input.first().json;\n\n// Handle webhook body, form data, or defaults\nconst config = {\n  // Metadata\n  projectName: input.projectName || input['Project Name'] || 'Transcript Analysis',\n  dashboardTitle: input.dashboardTitle || input['Dashboard Title'] || 'Transcript Analysis Dashboard',\n  participants: (input.participants || input['Participants (comma-separated)'] || '').split(',').map(p => p.trim()).filter(Boolean),\n  tags: (input.tags || input['Tags (comma-separated)'] || '').split(',').map(t => t.trim()).filter(Boolean),\n  dateRange: input.dateRange || input['Date Range'] || '',\n  \n  // Styling\n  primaryColor: input.primaryColor || input['Primary Brand Color'] || '#2563eb',\n  secondaryColor: input.secondaryColor || input['Secondary Brand Color'] || '#7c3aed',\n  accentColor: input.accentColor || '#f59e0b',\n  logoUrl: input.logoUrl || input['Logo URL (optional)'] || '',\n  customCss: input.customCss || input['Custom CSS (optional)'] || '',\n  stylingInstructions: input.stylingInstructions || input['Custom Styling Instructions'] || '',\n  \n  // Processing options\n  outputFormat: input.outputFormat || input['Output Format'] || 'Both HTML and JSON',\n  processingMode: input.processingMode || input['Processing Mode'] || 'Full (reprocess all files)',\n  sectionsToInclude: input.sectionsToInclude || input['Sections to Include'] || 'all',\n  \n  // Notifications\n  notificationWebhook: input.notificationWebhook || input['Notification Webhook URL (optional)'] || '',\n  \n  // Internal tracking\n  runId: `run-${Date.now()}`,\n  startedAt: new Date().toISOString()\n};\n\n// Determine output flags\nconfig.generateHtml = config.outputFormat.includes('HTML') || config.outputFormat.includes('Both');\nconfig.generateJson = config.outputFormat.includes('JSON') || config.outputFormat.includes('Both');\nconfig.incrementalMode = config.processingMode.includes('Incremental');\n\n// Parse sections\nif (config.sectionsToInclude === 'all') {\n  config.sections = ['questions', 'topics', 'tools', 'sessions', 'graph', 'summary', 'heatmap'];\n} else {\n  config.sections = config.sectionsToInclude.split(',').map(s => s.trim().toLowerCase());\n}\n\nreturn [{ json: { config } }];"
+        "jsCode": "// Merge configuration from all trigger types\nconst input = $input.first().json;\n\n// Parse custom extractors\nlet customExtractors = [];\ntry {\n  const extractorInput = input.customExtractors || input['Custom Extractors (JSON array)'] || '[]';\n  customExtractors = JSON.parse(extractorInput);\n} catch (e) {\n  customExtractors = [];\n}\n\n// Parse source config\nlet sourceConfig = {};\ntry {\n  sourceConfig = JSON.parse(input.sourceConfig || input['Source Config (JSON)'] || '{}');\n} catch (e) {\n  sourceConfig = {};\n}\n\n// Parse export config\nlet exportConfig = {};\ntry {\n  exportConfig = JSON.parse(input.exportConfig || input['Export Config (JSON)'] || '{}');\n} catch (e) {\n  exportConfig = {};\n}\n\nconst config = {\n  // Metadata\n  projectName: input.projectName || input['Project Name'] || 'Transcript Analysis',\n  dashboardTitle: input.dashboardTitle || input['Dashboard Title'] || 'Transcript Analysis Dashboard',\n  participants: (input.participants || input['Participants'] || '').split(',').map(p => p.trim()).filter(Boolean),\n  tags: (input.tags || input['Tags'] || '').split(',').map(t => t.trim()).filter(Boolean),\n  dateRange: input.dateRange || input['Date Range'] || '',\n  \n  // Styling\n  primaryColor: input.primaryColor || input['Primary Brand Color'] || '#2563eb',\n  secondaryColor: input.secondaryColor || input['Secondary Brand Color'] || '#7c3aed',\n  accentColor: input.accentColor || '#f59e0b',\n  logoUrl: input.logoUrl || input['Logo URL'] || '',\n  customCss: input.customCss || input['Custom CSS'] || '',\n  stylingInstructions: input.stylingInstructions || input['Styling Instructions'] || '',\n  \n  // Processing\n  outputFormat: input.outputFormat || input['Output Format'] || 'Both HTML and JSON',\n  processingMode: input.processingMode || input['Processing Mode'] || 'Full (reprocess all)',\n  sectionsToInclude: input.sectionsToInclude || input['Sections to Include'] || 'all',\n  \n  // Custom extractors\n  customExtractors,\n  \n  // Quality review\n  enableQualityReview: (input.enableQualityReview || input['Enable Quality Review Loop'] || 'Yes').includes('Yes'),\n  maxQualityIterations: parseInt(input.maxQualityIterations || input['Max Quality Iterations'] || '3'),\n  \n  // Source integration\n  sourceIntegration: input.sourceIntegration || input['Source Integration'] || 'Local files (/transcripts/)',\n  sourceConfig,\n  \n  // Export destinations\n  exportDestinations: (input.exportDestinations || input['Export Destinations'] || 'local').split(',').map(d => d.trim().toLowerCase()),\n  exportConfig,\n  \n  // Notifications\n  notificationWebhook: input.notificationWebhook || input['Notification Webhook'] || '',\n  \n  // Internal\n  runId: `run-${Date.now()}`,\n  startedAt: new Date().toISOString()\n};\n\n// Derived flags\nconfig.generateHtml = config.outputFormat.includes('HTML') || config.outputFormat.includes('Both');\nconfig.generateJson = config.outputFormat.includes('JSON') || config.outputFormat.includes('Both');\nconfig.incrementalMode = config.processingMode.includes('Incremental');\nconfig.sections = config.sectionsToInclude === 'all' \n  ? ['questions', 'topics', 'tools', 'sessions', 'graph', 'summary', 'heatmap']\n  : config.sectionsToInclude.split(',').map(s => s.trim().toLowerCase());\n\nreturn [{ json: { config } }];"
       },
       "id": "merge-config",
       "name": "Merge Configuration",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [450, 500]
+      "position": [450, 700]
     },
     {
       "parameters": {
-        "jsCode": "// Initialize status tracking file\nconst config = $input.first().json.config;\n\nconst status = {\n  runId: config.runId,\n  status: 'initializing',\n  phase: 'file_discovery',\n  startedAt: config.startedAt,\n  config: {\n    projectName: config.projectName,\n    outputFormat: config.outputFormat,\n    processingMode: config.processingMode\n  },\n  progress: {\n    filesDiscovered: 0,\n    filesProcessed: 0,\n    filesSkipped: 0,\n    filesFailed: 0,\n    currentFile: null\n  },\n  errors: [],\n  lastUpdated: new Date().toISOString()\n};\n\nreturn [{ json: { config, status } }];"
+        "jsCode": "const config = $input.first().json.config;\n\nconst status = {\n  runId: config.runId,\n  status: 'initializing',\n  phase: 'source_integration',\n  startedAt: config.startedAt,\n  config: {\n    projectName: config.projectName,\n    outputFormat: config.outputFormat,\n    sourceIntegration: config.sourceIntegration,\n    exportDestinations: config.exportDestinations\n  },\n  progress: { filesDiscovered: 0, filesProcessed: 0, filesSkipped: 0, filesFailed: 0 },\n  errors: [],\n  lastUpdated: new Date().toISOString()\n};\n\nreturn [{ json: { config, status } }];"
       },
       "id": "init-status",
       "name": "Initialize Status",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [650, 500]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `List all transcript files in /transcripts/ and return a JSON array.\n\nSupported formats:\n- .vtt (WebVTT)\n- .srt (SubRip)\n- .txt (Plain text transcripts)\n- .json (Structured transcripts)\n\nFor each file, return:\n{\n  \"filename\": \"example.vtt\",\n  \"format\": \"vtt\",\n  \"sizeBytes\": 12345,\n  \"modifiedTime\": \"2024-01-15T10:30:00Z\"\n}\n\nOutput ONLY a JSON array, no other text:\n[{\"filename\": \"...\", \"format\": \"...\", \"sizeBytes\": ..., \"modifiedTime\": \"...\"}]`, maxTurns: 5, workingDir: '/transcripts' }) }}",
-        "options": { "timeout": 60000 }
-      },
-      "id": "list-files",
-      "name": "List All Transcript Files",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [850, 500],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "claude-bridge-creds",
-          "name": "Claude Bridge"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const config = $('Merge Configuration').first().json.config;\nconst response = $json.result;\n\n// Parse file list from Claude response\nlet files = [];\ntry {\n  const match = response.match(/\\[[\\s\\S]*\\]/);\n  if (match) {\n    files = JSON.parse(match[0]);\n  }\n} catch (e) {\n  throw new Error('Failed to parse file list: ' + e.message);\n}\n\n// Load previous processing state for incremental mode\nlet previousState = {};\ntry {\n  // In a real implementation, this would read from a state file\n  // For now, we'll check if summaries exist\n  previousState = {}; // Would be loaded from /transcripts/.processing-state.json\n} catch (e) {\n  previousState = {};\n}\n\n// Filter files based on processing mode\nconst processableFiles = files.map(file => {\n  const fileHash = `${file.filename}-${file.sizeBytes}-${file.modifiedTime}`;\n  const previousHash = previousState[file.filename];\n  \n  return {\n    ...file,\n    outputPath: `/transcripts/summaries/${file.filename.replace(/\\.(vtt|srt|txt|json)$/i, '.md')}`,\n    shouldProcess: !config.incrementalMode || fileHash !== previousHash,\n    fileHash,\n    skipReason: config.incrementalMode && fileHash === previousHash ? 'unchanged' : null\n  };\n});\n\nconst toProcess = processableFiles.filter(f => f.shouldProcess);\nconst toSkip = processableFiles.filter(f => !f.shouldProcess);\n\n// Update status\nconst status = {\n  phase: 'file_discovery_complete',\n  progress: {\n    filesDiscovered: files.length,\n    filesToProcess: toProcess.length,\n    filesToSkip: toSkip.length\n  }\n};\n\nconsole.log(`Found ${files.length} files: ${toProcess.length} to process, ${toSkip.length} to skip`);\n\nreturn [{\n  json: {\n    config,\n    status,\n    allFiles: processableFiles,\n    filesToProcess: toProcess,\n    skippedFiles: toSkip\n  }\n}];"
-      },
-      "id": "parse-and-filter-files",
-      "name": "Parse & Filter Files",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1050, 500]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `Write status update to /transcripts/.status.json:\n\n${JSON.stringify($json.status, null, 2)}\n\nOutput only: STATUS_UPDATED`, maxTurns: 3, workingDir: '/transcripts' }) }}",
-        "options": { "timeout": 30000 }
-      },
-      "id": "write-status-discovery",
-      "name": "Write Status (Discovery)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1250, 500]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Split files for parallel processing\nconst data = $('Parse & Filter Files').first().json;\nconst files = data.filesToProcess;\n\nif (files.length === 0) {\n  return [{ json: { ...data, noFilesToProcess: true } }];\n}\n\nreturn files.map((file, index) => ({\n  json: {\n    ...file,\n    config: data.config,\n    totalFiles: files.length,\n    fileIndex: index + 1\n  }\n}));"
-      },
-      "id": "split-files",
-      "name": "Split Files for Processing",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1450, 500]
+      "position": [650, 700]
     },
     {
       "parameters": {
         "conditions": {
-          "boolean": [
+          "string": [
             {
-              "value1": "={{ $json.noFilesToProcess }}",
-              "value2": true
+              "value1": "={{ $json.config.sourceIntegration }}",
+              "value2": "Local files",
+              "operation": "contains"
             }
           ]
         }
       },
-      "id": "check-files-exist",
+      "id": "source-router",
+      "name": "Route by Source",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `List all transcript files in /transcripts/.\n\nSupported: .vtt, .srt, .txt, .json\n\nReturn JSON array:\n[{\"filename\": \"...\", \"format\": \"vtt|srt|txt|json\", \"sizeBytes\": N, \"modifiedTime\": \"ISO\"}]\n\nOutput ONLY the JSON array.`, maxTurns: 5, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "list-local-files",
+      "name": "List Local Files",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Fetch transcripts from external source.\n\nSource: ${$('Merge Configuration').first().json.config.sourceIntegration}\nConfig: ${JSON.stringify($('Merge Configuration').first().json.config.sourceConfig)}\n\n## Instructions by Source Type:\n\n### Zoom Cloud Recordings\n1. Use Zoom API to list recordings\n2. Download VTT/transcript files to /transcripts/\n3. Return list of downloaded files\n\n### Google Drive\n1. Use provided folder ID\n2. List .vtt, .srt, .txt, .json files\n3. Download to /transcripts/\n4. Return file list\n\n### Otter.ai webhook\n1. The webhook payload should contain transcript data\n2. Save to /transcripts/ as .txt\n3. Return file list\n\n### AWS S3\n1. List objects in bucket/prefix\n2. Download transcript files to /transcripts/\n3. Return file list\n\nAfter fetching, return JSON array of files:\n[{\"filename\": \"...\", \"format\": \"...\", \"sizeBytes\": N, \"modifiedTime\": \"...\", \"source\": \"external\"}]`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "fetch-external-source",
+      "name": "Fetch from External Source",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 800]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $('Merge Configuration').first().json.config;\nconst response = $json.result;\n\nlet files = [];\ntry {\n  const match = response.match(/\\[[\\s\\S]*\\]/);\n  if (match) files = JSON.parse(match[0]);\n} catch (e) {\n  throw new Error('Failed to parse file list: ' + e.message);\n}\n\n// Filter for incremental mode\nconst processableFiles = files.map(file => {\n  const fileHash = `${file.filename}-${file.sizeBytes}-${file.modifiedTime}`;\n  return {\n    ...file,\n    outputPath: `/transcripts/summaries/${file.filename.replace(/\\.(vtt|srt|txt|json)$/i, '.md')}`,\n    shouldProcess: !config.incrementalMode, // Simplified - real impl would check state file\n    fileHash\n  };\n});\n\nconst toProcess = processableFiles.filter(f => f.shouldProcess);\nconst toSkip = processableFiles.filter(f => !f.shouldProcess);\n\nreturn [{\n  json: {\n    config,\n    allFiles: processableFiles,\n    filesToProcess: toProcess,\n    skippedFiles: toSkip,\n    status: { phase: 'file_discovery_complete', progress: { filesDiscovered: files.length, filesToProcess: toProcess.length } }\n  }\n}];"
+      },
+      "id": "parse-files",
+      "name": "Parse & Filter Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst files = data.filesToProcess;\n\nif (files.length === 0) {\n  return [{ json: { ...data, noFilesToProcess: true } }];\n}\n\nreturn files.map((file, index) => ({\n  json: {\n    ...file,\n    config: data.config,\n    customExtractors: data.config.customExtractors,\n    totalFiles: files.length,\n    fileIndex: index + 1\n  }\n}));"
+      },
+      "id": "split-files",
+      "name": "Split for Processing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 700]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.noFilesToProcess }}", "value2": true }]
+        }
+      },
+      "id": "check-files",
       "name": "Files to Process?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1650, 500]
+      "position": [1650, 700]
     },
     {
       "parameters": {
@@ -233,23 +268,22 @@
         "workflowId": { "__rl": true, "mode": "list", "value": "" },
         "mode": "each"
       },
-      "id": "execute-subworkflow",
-      "name": "Analyze Files (Max 3 Parallel)",
+      "id": "analyze-subworkflow",
+      "name": "Analyze Files (Parallel)",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.1,
-      "position": [1850, 600],
-      "notesInFlow": true,
-      "notes": "Configure to point to 'VTT Single File Analyzer' subworkflow"
+      "position": [1850, 800],
+      "notes": "Link to 'VTT Single File Analyzer' subworkflow"
     },
     {
       "parameters": {
-        "jsCode": "// Aggregate results with error handling\nconst items = $input.all();\nconst config = items[0]?.json?.config || $('Parse & Filter Files').first().json.config;\nconst allFilesData = $('Parse & Filter Files').first().json;\n\nconst results = items.map(item => item.json);\nconst successful = results.filter(r => r.success);\nconst failed = results.filter(r => !r.success);\n\nconst status = {\n  phase: 'individual_analysis_complete',\n  progress: {\n    filesProcessed: successful.length,\n    filesFailed: failed.length,\n    filesSkipped: allFilesData.skippedFiles?.length || 0\n  },\n  errors: failed.map(f => ({ file: f.filename, error: f.error || 'Unknown error' }))\n};\n\nreturn [{\n  json: {\n    config,\n    status,\n    results: {\n      successful,\n      failed,\n      skipped: allFilesData.skippedFiles || []\n    }\n  }\n}];"
+        "jsCode": "const items = $input.all();\nconst config = items[0]?.json?.config || $('Parse & Filter Files').first().json.config;\n\nconst results = items.map(item => item.json);\nconst successful = results.filter(r => r.success);\nconst failed = results.filter(r => !r.success);\n\nreturn [{\n  json: {\n    config,\n    results: { successful, failed, skipped: $('Parse & Filter Files').first().json.skippedFiles || [] },\n    status: { phase: 'analysis_complete', progress: { filesProcessed: successful.length, filesFailed: failed.length } }\n  }\n}];"
       },
       "id": "aggregate-results",
       "name": "Aggregate Results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2050, 600]
+      "position": [2050, 700]
     },
     {
       "parameters": {
@@ -257,46 +291,26 @@
         "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `You are creating a comprehensive synthesis of analyzed transcript files.\n\n## Project Context\n- Project Name: ${$json.config.projectName}\n- Participants: ${$json.config.participants.join(', ') || 'Not specified'}\n- Tags: ${$json.config.tags.join(', ') || 'Not specified'}\n- Date Range: ${$json.config.dateRange || 'Not specified'}\n\n## Processing Summary\n- Files successfully processed: ${$json.results.successful.length}\n- Files skipped (unchanged): ${$json.results.skipped.length}\n- Files failed: ${$json.results.failed.length}\n\n## CRITICAL: Hierarchical Processing Required\nDue to potentially large number of files, use batch processing:\n\n### Step 1: Count and Batch\n1. List all .md files in /transcripts/summaries/\n2. Divide into batches of 20 files each\n\n### Step 2: Create Batch Summaries\nFor each batch, create: /transcripts/batch-summaries/batch-XX.md\n\n### Step 3: Meta Synthesis\nCreate /transcripts/combined-analysis.md with:\n\n### Executive Summary\n- Total sessions analyzed\n- Overall themes and focus areas\n- 5-7 key takeaways\n\n### Question Frequency Analysis\n| Question/Topic | Times Asked | Sessions |\n\n### Topic Heatmap Data\nBinary coverage matrix:\n| Topic | Session 1 | Session 2 | ... | Coverage % |\n\n### Cross-Session Insights\n- Common Themes\n- Unique Contributions\n- Knowledge Gaps\n\n### Tools & Resources Compendium\n| Resource | Type | Sessions | Context |\n\n### Investigation Priorities\nThings warranting further research\n\n### Recommended Review Order\nSuggested order for consuming content\n\n### Master Q&A Index\nAll questions organized by topic\n\n### Session Quick Reference\nOne-line summary per session\n\n## Output\nWrite to /transcripts/combined-analysis.md\nAfter completing, output: \"SYNTHESIS COMPLETE\"`, maxTurns: 30, workingDir: '/transcripts' }) }}",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Create comprehensive synthesis of analyzed transcripts.\n\n## Project: ${$json.config.projectName}\n## Participants: ${$json.config.participants.join(', ') || 'Not specified'}\n## Tags: ${$json.config.tags.join(', ') || 'Not specified'}\n\n## Custom Extractors Configured:\n${$json.config.customExtractors.length > 0 ? $json.config.customExtractors.map(e => `- ${e.name}: ${e.instructions || e.pattern}`).join('\\n') : 'None'}\n\n## Processing Summary\n- Processed: ${$json.results.successful.length}\n- Skipped: ${$json.results.skipped.length}\n- Failed: ${$json.results.failed.length}\n\n## Instructions\n1. mkdir -p /transcripts/batch-summaries\n2. List all .md files in /transcripts/summaries/\n3. Process in batches of 20, creating batch summaries\n4. Create /transcripts/combined-analysis.md with:\n\n### Required Sections:\n- Executive Summary (5-7 takeaways)\n- Question Frequency Analysis (table)\n- Topic Heatmap Data (coverage matrix)\n- Cross-Session Insights (themes, unique, gaps)\n- Tools & Resources Compendium\n- Investigation Priorities\n- Recommended Review Order\n- Master Q&A Index\n- Session Quick Reference\n\n### Custom Extractor Sections:\n${$json.config.customExtractors.map(e => `- ${e.name}: Aggregate all \"${e.name}\" data from summaries`).join('\\n') || 'None configured'}\n\nOutput: \"SYNTHESIS COMPLETE\"`, maxTurns: 30, workingDir: '/transcripts' }) }}",
         "options": { "timeout": 3600000 }
       },
       "id": "synthesis",
-      "name": "Hierarchical Synthesis Agent",
+      "name": "Hierarchical Synthesis",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2250, 500]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `Update /transcripts/.status.json with:\n\n{\n  \"phase\": \"synthesis_complete\",\n  \"progress\": {\n    \"synthesisComplete\": true\n  },\n  \"lastUpdated\": \"${new Date().toISOString()}\"\n}\n\nOutput only: STATUS_UPDATED`, maxTurns: 3, workingDir: '/transcripts' }) }}",
-        "options": { "timeout": 30000 }
-      },
-      "id": "write-status-synthesis",
-      "name": "Write Status (Synthesis)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2450, 500]
+      "position": [2250, 700]
     },
     {
       "parameters": {
         "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $('Merge Configuration').first().json.config.generateJson }}",
-              "value2": true
-            }
-          ]
+          "boolean": [{ "value1": "={{ $('Merge Configuration').first().json.config.generateJson }}", "value2": true }]
         }
       },
-      "id": "check-json-output",
+      "id": "check-json",
       "name": "Generate JSON?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [2650, 500]
+      "position": [2450, 700]
     },
     {
       "parameters": {
@@ -304,31 +318,26 @@
         "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `Create a structured JSON export of the analysis.\n\nRead /transcripts/combined-analysis.md and create /transcripts/analysis-data.json with this structure:\n\n{\n  \"metadata\": {\n    \"projectName\": \"${$('Merge Configuration').first().json.config.projectName}\",\n    \"generatedAt\": \"${new Date().toISOString()}\",\n    \"runId\": \"${$('Merge Configuration').first().json.config.runId}\",\n    \"participants\": ${JSON.stringify($('Merge Configuration').first().json.config.participants)},\n    \"tags\": ${JSON.stringify($('Merge Configuration').first().json.config.tags)},\n    \"dateRange\": \"${$('Merge Configuration').first().json.config.dateRange}\"\n  },\n  \"summary\": {\n    \"totalSessions\": <count>,\n    \"totalQuestions\": <count>,\n    \"totalTopics\": <count>,\n    \"totalTools\": <count>,\n    \"keyTakeaways\": [\"...\", \"...\"]\n  },\n  \"sessions\": [\n    {\n      \"id\": \"session-1\",\n      \"filename\": \"file.vtt\",\n      \"title\": \"...\",\n      \"type\": \"meeting|lecture|podcast|etc\",\n      \"duration\": \"XX min\",\n      \"summary\": \"...\",\n      \"topics\": [\"topic1\", \"topic2\"],\n      \"questions\": [\"q1\", \"q2\"]\n    }\n  ],\n  \"questions\": [\n    {\n      \"id\": \"q-1\",\n      \"text\": \"...\",\n      \"answer\": \"...\",\n      \"category\": \"...\",\n      \"session\": \"session-1\",\n      \"frequency\": 1\n    }\n  ],\n  \"topics\": [\n    {\n      \"id\": \"topic-1\",\n      \"name\": \"...\",\n      \"sessions\": [\"session-1\", \"session-2\"],\n      \"coverage\": 0.75\n    }\n  ],\n  \"tools\": [\n    {\n      \"id\": \"tool-1\",\n      \"name\": \"...\",\n      \"type\": \"software|website|book|framework\",\n      \"url\": \"...\",\n      \"sessions\": [\"session-1\"],\n      \"context\": \"...\"\n    }\n  ],\n  \"heatmap\": {\n    \"topics\": [\"topic1\", \"topic2\"],\n    \"sessions\": [\"session-1\", \"session-2\"],\n    \"data\": [[1, 0], [1, 1]]\n  }\n}\n\nExtract ALL data from combined-analysis.md. Output: \"JSON_EXPORT_COMPLETE\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Create structured JSON export.\n\nRead /transcripts/combined-analysis.md and create /transcripts/analysis-data.json:\n\n{\n  \"metadata\": {\n    \"projectName\": \"${$('Merge Configuration').first().json.config.projectName}\",\n    \"generatedAt\": \"${new Date().toISOString()}\",\n    \"runId\": \"${$('Merge Configuration').first().json.config.runId}\",\n    \"participants\": ${JSON.stringify($('Merge Configuration').first().json.config.participants)},\n    \"tags\": ${JSON.stringify($('Merge Configuration').first().json.config.tags)}\n  },\n  \"summary\": { \"totalSessions\": N, \"totalQuestions\": N, \"totalTopics\": N, \"keyTakeaways\": [...] },\n  \"sessions\": [{ \"id\": \"...\", \"filename\": \"...\", \"title\": \"...\", \"type\": \"...\", \"topics\": [...] }],\n  \"questions\": [{ \"id\": \"...\", \"text\": \"...\", \"answer\": \"...\", \"category\": \"...\", \"session\": \"...\" }],\n  \"topics\": [{ \"id\": \"...\", \"name\": \"...\", \"sessions\": [...], \"coverage\": 0.X }],\n  \"tools\": [{ \"id\": \"...\", \"name\": \"...\", \"type\": \"...\", \"url\": \"...\", \"sessions\": [...] }],\n  \"heatmap\": { \"topics\": [...], \"sessions\": [...], \"data\": [[...]] },\n  \"customExtractors\": {\n    ${$('Merge Configuration').first().json.config.customExtractors.map(e => `\"${e.name.toLowerCase().replace(/\\s+/g, '_')}\": [...]`).join(',\\n    ') || '/* none configured */'}\n  }\n}\n\nOutput: \"JSON_COMPLETE\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
         "options": { "timeout": 900000 }
       },
       "id": "generate-json",
-      "name": "Generate JSON Export",
+      "name": "Generate JSON",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2850, 400]
+      "position": [2650, 600]
     },
     {
       "parameters": {
         "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $('Merge Configuration').first().json.config.generateHtml }}",
-              "value2": true
-            }
-          ]
+          "boolean": [{ "value1": "={{ $('Merge Configuration').first().json.config.generateHtml }}", "value2": true }]
         }
       },
-      "id": "check-html-output",
+      "id": "check-html",
       "name": "Generate HTML?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [3050, 500]
+      "position": [2850, 700]
     },
     {
       "parameters": {
@@ -336,14 +345,14 @@
         "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `Create an interactive HTML dashboard from the analysis.\n\n## Project Branding\n- Dashboard Title: ${$('Merge Configuration').first().json.config.dashboardTitle}\n- Primary Color: ${$('Merge Configuration').first().json.config.primaryColor}\n- Secondary Color: ${$('Merge Configuration').first().json.config.secondaryColor}\n- Accent Color: ${$('Merge Configuration').first().json.config.accentColor}\n- Logo URL: ${$('Merge Configuration').first().json.config.logoUrl || 'none'}\n\n## Custom Styling Instructions\n${$('Merge Configuration').first().json.config.stylingInstructions || 'Use a clean, professional design suitable for business use.'}\n\n## Custom CSS to Include\n${$('Merge Configuration').first().json.config.customCss || '/* No custom CSS */'}\n\n## Sections to Include\n${$('Merge Configuration').first().json.config.sections.join(', ')}\n\n## Your Task\nRead /transcripts/combined-analysis.md (and /transcripts/analysis-data.json if it exists) and create an engaging HTML dashboard.\n\n## Design Requirements\n- Apply the branding colors throughout\n- If logo URL provided, display it in the header\n- Include the custom CSS in a <style> block\n- Follow the custom styling instructions\n- Only include the sections specified above\n\n## Technical Requirements\n- Single self-contained HTML file\n- All CSS/JS inline (except D3.js CDN for knowledge graph)\n- Mobile responsive with media queries\n- Dark/light mode toggle (localStorage)\n- Print stylesheet\n- Pagination for large lists (20 per page)\n- Search/filter functionality\n- Debounced search (300ms)\n\n## Required Components (include if in sections list)\n- Hero Section with stats and key takeaways\n- Question Explorer with dynamic category filters\n- Topic Heatmap (scrollable)\n- Tools Gallery with auto-detected categories\n- Session Navigator (paginated)\n- Knowledge Graph (D3.js)\n- Investigation Queue with localStorage\n- Global Search\n\n## Output\nWrite to /transcripts/dashboard.html\nOutput: \"DASHBOARD_COMPLETE\"`, maxTurns: 35, workingDir: '/transcripts' }) }}",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Create interactive HTML dashboard.\n\n## Branding\n- Title: ${$('Merge Configuration').first().json.config.dashboardTitle}\n- Primary: ${$('Merge Configuration').first().json.config.primaryColor}\n- Secondary: ${$('Merge Configuration').first().json.config.secondaryColor}\n- Accent: ${$('Merge Configuration').first().json.config.accentColor}\n- Logo: ${$('Merge Configuration').first().json.config.logoUrl || 'none'}\n\n## Styling Instructions\n${$('Merge Configuration').first().json.config.stylingInstructions || 'Clean, professional design.'}\n\n## Custom CSS\n${$('Merge Configuration').first().json.config.customCss || '/* none */'}\n\n## Sections: ${$('Merge Configuration').first().json.config.sections.join(', ')}\n\n## Custom Extractor Sections\n${$('Merge Configuration').first().json.config.customExtractors.map(e => `- ${e.name}: Display as collapsible list/table`).join('\\n') || 'None'}\n\n## Requirements\n- Read /transcripts/combined-analysis.md and /transcripts/analysis-data.json (if exists)\n- Single self-contained HTML\n- D3.js for knowledge graph\n- Mobile responsive\n- Dark/light toggle\n- Pagination (20/page)\n- Search/filter\n- Include custom extractor data as additional dashboard sections\n\nWrite to /transcripts/dashboard.html\nOutput: \"DASHBOARD_COMPLETE\"`, maxTurns: 35, workingDir: '/transcripts' }) }}",
         "options": { "timeout": 3600000 }
       },
       "id": "generate-html",
-      "name": "Generate HTML Dashboard",
+      "name": "Generate HTML",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3250, 600]
+      "position": [3050, 800]
     },
     {
       "parameters": {
@@ -351,25 +360,36 @@
         "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `Add a D3.js knowledge graph to /transcripts/dashboard.html.\n\n## Requirements\n- Use D3.js v7 from CDN\n- Show top 50 most-connected nodes by default\n- Filter controls: slider for node count, checkboxes for Topics/Tools/Sessions\n- Colors: topic=${$('Merge Configuration').first().json.config.primaryColor}, tool=${$('Merge Configuration').first().json.config.secondaryColor}, session=${$('Merge Configuration').first().json.config.accentColor}\n- Draggable nodes, click to highlight, hover tooltips\n- Zoom and pan support\n- Respect dark mode toggle\n- Performance: stop simulation at alpha < 0.001\n\nOutput: \"KNOWLEDGE_GRAPH_ADDED\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Add D3.js knowledge graph to /transcripts/dashboard.html.\n\nColors: topic=${$('Merge Configuration').first().json.config.primaryColor}, tool=${$('Merge Configuration').first().json.config.secondaryColor}, session=${$('Merge Configuration').first().json.config.accentColor}\n\nRequirements:\n- D3.js v7 CDN\n- Top 50 nodes default\n- Filter controls\n- Draggable, zoomable\n- Dark mode compatible\n\nOutput: \"GRAPH_ADDED\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
         "options": { "timeout": 1200000 }
       },
-      "id": "add-knowledge-graph",
+      "id": "add-graph",
       "name": "Add Knowledge Graph",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3450, 600],
-      "executeOnce": true
+      "position": [3250, 800]
     },
     {
       "parameters": {
-        "jsCode": "// Merge all output paths\nconst config = $('Merge Configuration').first().json.config;\n\nconst outputs = {\n  summaries: '/transcripts/summaries/',\n  combinedAnalysis: '/transcripts/combined-analysis.md',\n  statusFile: '/transcripts/.status.json'\n};\n\nif (config.generateJson) {\n  outputs.jsonData = '/transcripts/analysis-data.json';\n}\n\nif (config.generateHtml) {\n  outputs.dashboard = '/transcripts/dashboard.html';\n}\n\nreturn [{ json: { config, outputs } }];"
+        "conditions": {
+          "boolean": [{ "value1": "={{ $('Merge Configuration').first().json.config.enableQualityReview }}", "value2": true }]
+        }
       },
-      "id": "merge-outputs",
-      "name": "Merge Outputs",
+      "id": "check-quality-review",
+      "name": "Quality Review?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [3450, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { iteration: 1, maxIterations: $('Merge Configuration').first().json.config.maxQualityIterations } }];"
+      },
+      "id": "init-quality-loop",
+      "name": "Init Quality Loop",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3650, 500]
+      "position": [3650, 600]
     },
     {
       "parameters": {
@@ -377,11 +397,11 @@
         "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `Save the processing state for incremental mode.\n\nRead all files in /transcripts/summaries/ and create /transcripts/.processing-state.json with:\n\n{\n  \"lastRun\": \"${new Date().toISOString()}\",\n  \"runId\": \"${$json.config.runId}\",\n  \"files\": {\n    \"filename.vtt\": \"hash-based-on-size-and-mtime\",\n    ...\n  }\n}\n\nOutput: \"STATE_SAVED\"`, maxTurns: 10, workingDir: '/transcripts' }) }}",
-        "options": { "timeout": 120000 }
+        "jsonBody": "={{ JSON.stringify({ prompt: `Review dashboard.html for CONTENT ACCURACY.\n\nRead:\n1. /transcripts/combined-analysis.md\n2. /transcripts/dashboard.html\n3. Sample files in /transcripts/summaries/\n\nVerify:\n1. Sessions complete (count match)\n2. Questions complete\n3. Topics complete\n4. Tools listed\n5. No fabrication (spot-check 3 facts)\n6. Summary accurate\n\nOutput JSON only:\n{\"dimension\": \"content\", \"criteria\": {...}, \"overall_pass\": true/false, \"issues\": [], \"recommendations\": []}`, maxTurns: 20, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 600000 }
       },
-      "id": "save-processing-state",
-      "name": "Save Processing State",
+      "id": "content-reviewer",
+      "name": "Content Reviewer",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [3850, 500]
@@ -392,31 +412,312 @@
         "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: `Write final status to /transcripts/.status.json:\n\n{\n  \"status\": \"complete\",\n  \"runId\": \"${$json.config.runId}\",\n  \"completedAt\": \"${new Date().toISOString()}\",\n  \"outputs\": ${JSON.stringify($json.outputs)},\n  \"config\": {\n    \"projectName\": \"${$json.config.projectName}\",\n    \"outputFormat\": \"${$json.config.outputFormat}\"\n  }\n}\n\nOutput: \"COMPLETE\"`, maxTurns: 3, workingDir: '/transcripts' }) }}",
-        "options": { "timeout": 30000 }
+        "jsonBody": "={{ JSON.stringify({ prompt: `Review dashboard.html for VISUAL DESIGN.\n\nRead /transcripts/dashboard.html.\n\nVerify:\n1. Visual hierarchy (key insights prominent)\n2. Color consistency (brand colors used correctly)\n3. Typography (readable sizes, line heights)\n4. Whitespace (balanced, not cramped)\n5. Interactive feedback (hover states, transitions)\n6. Mobile responsive (media queries)\n7. Progressive disclosure (accordions)\n8. Professional aesthetic\n\nOutput JSON only:\n{\"dimension\": \"visual\", \"criteria\": {...}, \"pass_count\": N, \"overall_pass\": true/false (7+ of 8), \"issues\": [], \"recommendations\": []}`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 600000 }
+      },
+      "id": "visual-reviewer",
+      "name": "Visual Reviewer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3850, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Review dashboard.html for TECHNICAL QUALITY.\n\nRead /transcripts/dashboard.html.\n\nVerify:\n1. Valid HTML (DOCTYPE, nesting, closed tags)\n2. CSS loads (style block, valid selectors)\n3. JS executes (no syntax errors)\n4. Search works (input connected to filter)\n5. Dark mode works (toggle, CSS vars, localStorage)\n6. Links work (valid paths)\n7. localStorage works (save/restore)\n8. Print stylesheet present\n\nOutput JSON only:\n{\"dimension\": \"technical\", \"criteria\": {...}, \"overall_pass\": true/false (ALL must pass), \"issues\": [], \"recommendations\": []}`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 600000 }
+      },
+      "id": "technical-reviewer",
+      "name": "Technical Reviewer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3850, 700]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "merge-reviews",
+      "name": "Merge Reviews",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [4050, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "function parseReview(result) {\n  if (!result) return { overall_pass: false, issues: ['No result'], recommendations: [] };\n  try {\n    return JSON.parse(result);\n  } catch (e) {\n    const match = result.match?.(/\\{[\\s\\S]*\\}/);\n    if (match) try { return JSON.parse(match[0]); } catch {}\n    return { overall_pass: false, issues: ['Parse error'], recommendations: [] };\n  }\n}\n\nconst items = $input.all();\nconst iteration = $('Init Quality Loop').first()?.json?.iteration || 1;\n\nconst content = parseReview(items.find(i => i.json.result?.includes('content'))?.json?.result);\nconst visual = parseReview(items.find(i => i.json.result?.includes('visual'))?.json?.result);\nconst technical = parseReview(items.find(i => i.json.result?.includes('technical'))?.json?.result);\n\nconst allPass = content.overall_pass && visual.overall_pass && technical.overall_pass;\nconst allIssues = [...(content.issues||[]), ...(visual.issues||[]), ...(technical.issues||[])];\nconst allRecs = [...(content.recommendations||[]), ...(visual.recommendations||[]), ...(technical.recommendations||[])];\n\nreturn [{ json: { allPass, iteration, maxIterations: 3, reviews: { content, visual, technical }, allIssues, allRecommendations: allRecs, totalIssues: allIssues.length } }];"
+      },
+      "id": "aggregate-reviews",
+      "name": "Aggregate Reviews",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4250, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.allPass }}", "value2": true }]
+        }
+      },
+      "id": "check-pass",
+      "name": "All Passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [4450, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Improve dashboard based on review feedback.\n\n## Iteration ${$json.iteration} of ${$json.maxIterations}\n\n## Issues (${$json.totalIssues}):\n${$json.allIssues.map((i,n) => `${n+1}. ${i}`).join('\\n')}\n\n## Recommendations:\n${$json.allRecommendations.map((r,n) => `${n+1}. ${r}`).join('\\n')}\n\n## Review Status:\n- Content: ${$json.reviews.content.overall_pass ? 'PASS' : 'FAIL'}\n- Visual: ${$json.reviews.visual.overall_pass ? 'PASS' : 'FAIL'}\n- Technical: ${$json.reviews.technical.overall_pass ? 'PASS' : 'FAIL'}\n\nFix ALL issues in /transcripts/dashboard.html.\nPriority: Technical > Content > Visual.\n\nOutput: \"IMPROVEMENTS COMPLETE\"`, maxTurns: 25, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 600000 }
+      },
+      "id": "improvement-agent",
+      "name": "Improvement Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4650, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "const current = $('Aggregate Reviews').first().json.iteration;\nreturn [{ json: { iteration: current + 1, maxIterations: 3 } }];"
+      },
+      "id": "increment-iteration",
+      "name": "Increment Iteration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4850, 700]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [{ "value1": "={{ $json.iteration }}", "value2": 3, "operation": "smaller" }]
+        }
+      },
+      "id": "more-iterations",
+      "name": "More Iterations?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [5050, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $('Merge Configuration').first().json.config;\n\nconst outputs = {\n  summaries: '/transcripts/summaries/',\n  analysis: '/transcripts/combined-analysis.md'\n};\nif (config.generateJson) outputs.json = '/transcripts/analysis-data.json';\nif (config.generateHtml) outputs.dashboard = '/transcripts/dashboard.html';\n\nreturn [{ json: { config, outputs, qualityReviewComplete: true } }];"
+      },
+      "id": "quality-complete",
+      "name": "Quality Complete",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4650, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $('Merge Configuration').first().json.config;\nconst outputs = $input.first()?.json?.outputs || {\n  summaries: '/transcripts/summaries/',\n  analysis: '/transcripts/combined-analysis.md'\n};\nif (config.generateJson) outputs.json = '/transcripts/analysis-data.json';\nif (config.generateHtml) outputs.dashboard = '/transcripts/dashboard.html';\n\nreturn [{ json: { config, outputs } }];"
+      },
+      "id": "skip-quality",
+      "name": "Skip Quality Review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3650, 800]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge paths from both routes\nconst items = $input.all();\nconst data = items[0]?.json || {};\nconst config = data.config || $('Merge Configuration').first().json.config;\nconst outputs = data.outputs || {};\n\nreturn [{ json: { config, outputs } }];"
+      },
+      "id": "merge-paths",
+      "name": "Merge Paths",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [5250, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $input.first().json.config;\nconst outputs = $input.first().json.outputs;\nconst destinations = config.exportDestinations;\n\nreturn [{ json: { config, outputs, destinations, exportConfig: config.exportConfig } }];"
+      },
+      "id": "prepare-exports",
+      "name": "Prepare Exports",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [5450, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.destinations.join(',') }}", "value2": "gdrive", "operation": "contains" }]
+        }
+      },
+      "id": "check-gdrive",
+      "name": "Export to GDrive?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [5650, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Upload outputs to Google Drive.\n\nConfig: ${JSON.stringify($json.exportConfig.gdrive || {})}\n\nFiles to upload:\n${Object.entries($json.outputs).map(([k,v]) => `- ${v}`).join('\\n')}\n\nUse Google Drive API to upload files to specified folder.\nOutput: \"GDRIVE_EXPORT_COMPLETE\"`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "export-gdrive",
+      "name": "Export to Google Drive",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [5850, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.destinations.join(',') }}", "value2": "notion", "operation": "contains" }]
+        }
+      },
+      "id": "check-notion",
+      "name": "Export to Notion?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [5650, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Export to Notion.\n\nConfig: ${JSON.stringify($json.exportConfig.notion || {})}\n\nRead /transcripts/combined-analysis.md and create a Notion page with:\n- Title: ${$json.config.dashboardTitle}\n- Content structured as Notion blocks\n- Link to dashboard if available\n\nUse Notion API.\nOutput: \"NOTION_EXPORT_COMPLETE\"`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "export-notion",
+      "name": "Export to Notion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [5850, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.destinations.join(',') }}", "value2": "s3", "operation": "contains" }]
+        }
+      },
+      "id": "check-s3",
+      "name": "Export to S3?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [5650, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Upload to AWS S3.\n\nConfig: ${JSON.stringify($json.exportConfig.s3 || {})}\n\nFiles:\n${Object.entries($json.outputs).map(([k,v]) => `- ${v}`).join('\\n')}\n\nUse AWS CLI or SDK.\nOutput: \"S3_EXPORT_COMPLETE\"`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "export-s3",
+      "name": "Export to S3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [5850, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.destinations.join(',') }}", "value2": "email", "operation": "contains" }]
+        }
+      },
+      "id": "check-email",
+      "name": "Export via Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [5650, 800]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Send email with analysis.\n\nConfig: ${JSON.stringify($json.exportConfig.email || {})}\nTo: ${$json.exportConfig.email?.to || 'not configured'}\n\nCompose email:\n- Subject: \"${$json.config.projectName} - Transcript Analysis Complete\"\n- Body: Summary from combined-analysis.md\n- Attachments: dashboard.html, analysis-data.json if they exist\n\nOutput: \"EMAIL_SENT\"`, maxTurns: 15, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "export-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [5850, 700]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.destinations.join(',') }}", "value2": "airtable", "operation": "contains" }]
+        }
+      },
+      "id": "check-airtable",
+      "name": "Export to Airtable?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [5650, 900]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Export to Airtable.\n\nConfig: ${JSON.stringify($json.exportConfig.airtable || {})}\n\nRead /transcripts/analysis-data.json and create/update Airtable records:\n- Sessions table\n- Questions table\n- Topics table\n- Tools table\n\nUse Airtable API.\nOutput: \"AIRTABLE_EXPORT_COMPLETE\"`, maxTurns: 20, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "export-airtable",
+      "name": "Export to Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [5850, 800]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $('Merge Configuration').first().json.config;\nconst outputs = $('Prepare Exports').first().json.outputs;\n\nreturn [{ json: { config, outputs, exportsComplete: true } }];"
+      },
+      "id": "exports-complete",
+      "name": "Exports Complete",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [6050, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $credentials.claudeBridgeUrl || 'http://claude-bridge:3456/claude' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: `Write final status to /transcripts/.status.json:\n\n{\n  \"status\": \"complete\",\n  \"runId\": \"${$json.config.runId}\",\n  \"completedAt\": \"${new Date().toISOString()}\",\n  \"outputs\": ${JSON.stringify($json.outputs)}\n}\n\nAlso save processing state to /transcripts/.processing-state.json for incremental mode.\n\nOutput: \"COMPLETE\"`, maxTurns: 5, workingDir: '/transcripts' }) }}",
+        "options": { "timeout": 60000 }
       },
       "id": "write-final-status",
       "name": "Write Final Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [4050, 500]
+      "position": [6250, 600]
     },
     {
       "parameters": {
         "conditions": {
-          "string": [
-            {
-              "value1": "={{ $('Merge Configuration').first().json.config.notificationWebhook }}",
-              "operation": "isNotEmpty"
-            }
-          ]
+          "string": [{ "value1": "={{ $('Merge Configuration').first().json.config.notificationWebhook }}", "operation": "isNotEmpty" }]
         }
       },
-      "id": "check-notification",
+      "id": "check-notify",
       "name": "Send Notification?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [4250, 500]
+      "position": [6450, 600]
     },
     {
       "parameters": {
@@ -424,113 +725,124 @@
         "url": "={{ $('Merge Configuration').first().json.config.notificationWebhook }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ text: `✅ Transcript Analysis Complete\\n\\nProject: ${$('Merge Configuration').first().json.config.projectName}\\nRun ID: ${$('Merge Configuration').first().json.config.runId}\\n\\nOutputs generated:\\n${Object.entries($('Merge Outputs').first().json.outputs).map(([k,v]) => `• ${k}: ${v}`).join('\\n')}`, username: 'VTT Analyzer', icon_emoji: ':chart_with_upwards_trend:' }) }}",
+        "jsonBody": "={{ JSON.stringify({ text: `✅ Transcript Analysis Complete\\n\\nProject: ${$('Merge Configuration').first().json.config.projectName}\\nRun: ${$('Merge Configuration').first().json.config.runId}\\n\\nOutputs:\\n${Object.entries($('Exports Complete').first().json.outputs).map(([k,v]) => `• ${k}: ${v}`).join('\\n')}\\n\\nExports: ${$('Merge Configuration').first().json.config.exportDestinations.join(', ')}` }) }}",
         "options": { "timeout": 10000 }
       },
       "id": "send-notification",
-      "name": "Send Completion Notification",
+      "name": "Send Notification",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [4450, 400]
+      "position": [6650, 500]
     },
     {
       "parameters": {
-        "jsCode": "const config = $('Merge Configuration').first().json.config;\nconst outputs = $('Merge Outputs').first().json.outputs;\n\nreturn [{\n  json: {\n    status: 'Pipeline Complete',\n    runId: config.runId,\n    projectName: config.projectName,\n    completedAt: new Date().toISOString(),\n    outputs,\n    config: {\n      outputFormat: config.outputFormat,\n      processingMode: config.processingMode,\n      sectionsIncluded: config.sections\n    }\n  }\n}];"
+        "jsCode": "const config = $('Merge Configuration').first().json.config;\nconst outputs = $('Exports Complete').first().json.outputs;\n\nreturn [{\n  json: {\n    status: 'Pipeline Complete',\n    runId: config.runId,\n    projectName: config.projectName,\n    completedAt: new Date().toISOString(),\n    outputs,\n    exports: config.exportDestinations,\n    qualityReview: config.enableQualityReview,\n    customExtractors: config.customExtractors.map(e => e.name)\n  }\n}];"
       },
       "id": "final-output",
       "name": "Pipeline Complete",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [4650, 500]
+      "position": [6850, 600]
     }
   ],
   "connections": {
-    "Manual Trigger": {
-      "main": [[{ "node": "Merge Configuration", "type": "main", "index": 0 }]]
-    },
-    "Webhook Trigger": {
-      "main": [[{ "node": "Merge Configuration", "type": "main", "index": 0 }]]
-    },
-    "Configuration Form": {
-      "main": [[{ "node": "Merge Configuration", "type": "main", "index": 0 }]]
-    },
-    "Merge Configuration": {
-      "main": [[{ "node": "Initialize Status", "type": "main", "index": 0 }]]
-    },
-    "Initialize Status": {
-      "main": [[{ "node": "List All Transcript Files", "type": "main", "index": 0 }]]
-    },
-    "List All Transcript Files": {
-      "main": [[{ "node": "Parse & Filter Files", "type": "main", "index": 0 }]]
-    },
-    "Parse & Filter Files": {
-      "main": [[{ "node": "Write Status (Discovery)", "type": "main", "index": 0 }]]
-    },
-    "Write Status (Discovery)": {
-      "main": [[{ "node": "Split Files for Processing", "type": "main", "index": 0 }]]
-    },
-    "Split Files for Processing": {
-      "main": [[{ "node": "Files to Process?", "type": "main", "index": 0 }]]
-    },
-    "Files to Process?": {
-      "main": [
-        [{ "node": "Hierarchical Synthesis Agent", "type": "main", "index": 0 }],
-        [{ "node": "Analyze Files (Max 3 Parallel)", "type": "main", "index": 0 }]
-      ]
-    },
-    "Analyze Files (Max 3 Parallel)": {
-      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
-    },
-    "Aggregate Results": {
-      "main": [[{ "node": "Hierarchical Synthesis Agent", "type": "main", "index": 0 }]]
-    },
-    "Hierarchical Synthesis Agent": {
-      "main": [[{ "node": "Write Status (Synthesis)", "type": "main", "index": 0 }]]
-    },
-    "Write Status (Synthesis)": {
-      "main": [[{ "node": "Generate JSON?", "type": "main", "index": 0 }]]
-    },
-    "Generate JSON?": {
-      "main": [
-        [{ "node": "Generate JSON Export", "type": "main", "index": 0 }],
-        [{ "node": "Generate HTML?", "type": "main", "index": 0 }]
-      ]
-    },
-    "Generate JSON Export": {
-      "main": [[{ "node": "Generate HTML?", "type": "main", "index": 0 }]]
-    },
-    "Generate HTML?": {
-      "main": [
-        [{ "node": "Merge Outputs", "type": "main", "index": 0 }],
-        [{ "node": "Generate HTML Dashboard", "type": "main", "index": 0 }]
-      ]
-    },
-    "Generate HTML Dashboard": {
-      "main": [[{ "node": "Add Knowledge Graph", "type": "main", "index": 0 }]]
-    },
-    "Add Knowledge Graph": {
-      "main": [[{ "node": "Merge Outputs", "type": "main", "index": 0 }]]
-    },
-    "Merge Outputs": {
-      "main": [[{ "node": "Save Processing State", "type": "main", "index": 0 }]]
-    },
-    "Save Processing State": {
-      "main": [[{ "node": "Write Final Status", "type": "main", "index": 0 }]]
-    },
-    "Write Final Status": {
-      "main": [[{ "node": "Send Notification?", "type": "main", "index": 0 }]]
-    },
-    "Send Notification?": {
-      "main": [
-        [{ "node": "Send Completion Notification", "type": "main", "index": 0 }],
-        [{ "node": "Pipeline Complete", "type": "main", "index": 0 }]
-      ]
-    },
-    "Send Completion Notification": {
-      "main": [[{ "node": "Pipeline Complete", "type": "main", "index": 0 }]]
-    }
+    "Manual Trigger": { "main": [[{ "node": "Merge Configuration", "type": "main", "index": 0 }]] },
+    "Webhook Trigger": { "main": [[{ "node": "Merge Configuration", "type": "main", "index": 0 }]] },
+    "Configuration Form": { "main": [[{ "node": "Merge Configuration", "type": "main", "index": 0 }]] },
+    "Merge Configuration": { "main": [[{ "node": "Initialize Status", "type": "main", "index": 0 }]] },
+    "Initialize Status": { "main": [[{ "node": "Route by Source", "type": "main", "index": 0 }]] },
+    "Route by Source": { "main": [
+      [{ "node": "List Local Files", "type": "main", "index": 0 }],
+      [{ "node": "Fetch from External Source", "type": "main", "index": 0 }]
+    ]},
+    "List Local Files": { "main": [[{ "node": "Parse & Filter Files", "type": "main", "index": 0 }]] },
+    "Fetch from External Source": { "main": [[{ "node": "Parse & Filter Files", "type": "main", "index": 0 }]] },
+    "Parse & Filter Files": { "main": [[{ "node": "Split for Processing", "type": "main", "index": 0 }]] },
+    "Split for Processing": { "main": [[{ "node": "Files to Process?", "type": "main", "index": 0 }]] },
+    "Files to Process?": { "main": [
+      [{ "node": "Hierarchical Synthesis", "type": "main", "index": 0 }],
+      [{ "node": "Analyze Files (Parallel)", "type": "main", "index": 0 }]
+    ]},
+    "Analyze Files (Parallel)": { "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]] },
+    "Aggregate Results": { "main": [[{ "node": "Hierarchical Synthesis", "type": "main", "index": 0 }]] },
+    "Hierarchical Synthesis": { "main": [[{ "node": "Generate JSON?", "type": "main", "index": 0 }]] },
+    "Generate JSON?": { "main": [
+      [{ "node": "Generate JSON", "type": "main", "index": 0 }],
+      [{ "node": "Generate HTML?", "type": "main", "index": 0 }]
+    ]},
+    "Generate JSON": { "main": [[{ "node": "Generate HTML?", "type": "main", "index": 0 }]] },
+    "Generate HTML?": { "main": [
+      [{ "node": "Quality Review?", "type": "main", "index": 0 }],
+      [{ "node": "Generate HTML", "type": "main", "index": 0 }]
+    ]},
+    "Generate HTML": { "main": [[{ "node": "Add Knowledge Graph", "type": "main", "index": 0 }]] },
+    "Add Knowledge Graph": { "main": [[{ "node": "Quality Review?", "type": "main", "index": 0 }]] },
+    "Quality Review?": { "main": [
+      [{ "node": "Init Quality Loop", "type": "main", "index": 0 }],
+      [{ "node": "Skip Quality Review", "type": "main", "index": 0 }]
+    ]},
+    "Init Quality Loop": { "main": [
+      [{ "node": "Content Reviewer", "type": "main", "index": 0 }],
+      [{ "node": "Visual Reviewer", "type": "main", "index": 0 }],
+      [{ "node": "Technical Reviewer", "type": "main", "index": 0 }]
+    ]},
+    "Content Reviewer": { "main": [[{ "node": "Merge Reviews", "type": "main", "index": 0 }]] },
+    "Visual Reviewer": { "main": [[{ "node": "Merge Reviews", "type": "main", "index": 1 }]] },
+    "Technical Reviewer": { "main": [[{ "node": "Merge Reviews", "type": "main", "index": 2 }]] },
+    "Merge Reviews": { "main": [[{ "node": "Aggregate Reviews", "type": "main", "index": 0 }]] },
+    "Aggregate Reviews": { "main": [[{ "node": "All Passed?", "type": "main", "index": 0 }]] },
+    "All Passed?": { "main": [
+      [{ "node": "Quality Complete", "type": "main", "index": 0 }],
+      [{ "node": "Improvement Agent", "type": "main", "index": 0 }]
+    ]},
+    "Improvement Agent": { "main": [[{ "node": "Increment Iteration", "type": "main", "index": 0 }]] },
+    "Increment Iteration": { "main": [[{ "node": "More Iterations?", "type": "main", "index": 0 }]] },
+    "More Iterations?": { "main": [
+      [{ "node": "Content Reviewer", "type": "main", "index": 0 }, { "node": "Visual Reviewer", "type": "main", "index": 0 }, { "node": "Technical Reviewer", "type": "main", "index": 0 }],
+      [{ "node": "Quality Complete", "type": "main", "index": 0 }]
+    ]},
+    "Quality Complete": { "main": [[{ "node": "Merge Paths", "type": "main", "index": 0 }]] },
+    "Skip Quality Review": { "main": [[{ "node": "Merge Paths", "type": "main", "index": 0 }]] },
+    "Merge Paths": { "main": [[{ "node": "Prepare Exports", "type": "main", "index": 0 }]] },
+    "Prepare Exports": { "main": [
+      [{ "node": "Export to GDrive?", "type": "main", "index": 0 }],
+      [{ "node": "Export to Notion?", "type": "main", "index": 0 }],
+      [{ "node": "Export to S3?", "type": "main", "index": 0 }],
+      [{ "node": "Export via Email?", "type": "main", "index": 0 }],
+      [{ "node": "Export to Airtable?", "type": "main", "index": 0 }]
+    ]},
+    "Export to GDrive?": { "main": [
+      [{ "node": "Export to Google Drive", "type": "main", "index": 0 }],
+      [{ "node": "Exports Complete", "type": "main", "index": 0 }]
+    ]},
+    "Export to Google Drive": { "main": [[{ "node": "Exports Complete", "type": "main", "index": 0 }]] },
+    "Export to Notion?": { "main": [
+      [{ "node": "Export to Notion", "type": "main", "index": 0 }],
+      [{ "node": "Exports Complete", "type": "main", "index": 0 }]
+    ]},
+    "Export to Notion": { "main": [[{ "node": "Exports Complete", "type": "main", "index": 0 }]] },
+    "Export to S3?": { "main": [
+      [{ "node": "Export to S3", "type": "main", "index": 0 }],
+      [{ "node": "Exports Complete", "type": "main", "index": 0 }]
+    ]},
+    "Export to S3": { "main": [[{ "node": "Exports Complete", "type": "main", "index": 0 }]] },
+    "Export via Email?": { "main": [
+      [{ "node": "Send Email", "type": "main", "index": 0 }],
+      [{ "node": "Exports Complete", "type": "main", "index": 0 }]
+    ]},
+    "Send Email": { "main": [[{ "node": "Exports Complete", "type": "main", "index": 0 }]] },
+    "Export to Airtable?": { "main": [
+      [{ "node": "Export to Airtable", "type": "main", "index": 0 }],
+      [{ "node": "Exports Complete", "type": "main", "index": 0 }]
+    ]},
+    "Export to Airtable": { "main": [[{ "node": "Exports Complete", "type": "main", "index": 0 }]] },
+    "Exports Complete": { "main": [[{ "node": "Write Final Status", "type": "main", "index": 0 }]] },
+    "Write Final Status": { "main": [[{ "node": "Send Notification?", "type": "main", "index": 0 }]] },
+    "Send Notification?": { "main": [
+      [{ "node": "Send Notification", "type": "main", "index": 0 }],
+      [{ "node": "Pipeline Complete", "type": "main", "index": 0 }]
+    ]},
+    "Send Notification": { "main": [[{ "node": "Pipeline Complete", "type": "main", "index": 0 }]] }
   },
-  "settings": {
-    "executionOrder": "v1"
-  }
+  "settings": { "executionOrder": "v1" }
 }
