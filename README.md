@@ -1,11 +1,12 @@
 # Distill
 
-**Distill conversations into intelligence.**
+**LLM-powered intelligence extraction pipeline for transcripts.**
 
-An AI-powered n8n workflow that extracts insights from meetings, calls, interviews, and any recorded conversation—then synthesizes them into interactive dashboards and structured data.
+Transform meetings, lectures, and calls into interactive executive dashboards. Multi-source, quality-reviewed, multi-destination.
+
+*Prompts are the product; runners are swappable.*
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![n8n](https://img.shields.io/badge/n8n-1.0+-orange.svg)
 
 ![Distill Dashboard Example](distill.png)
 *Example dashboard generated from 100+ lecture transcripts*
@@ -14,228 +15,48 @@ An AI-powered n8n workflow that extracts insights from meetings, calls, intervie
 
 ## What Distill Does
 
-1. **Pulls transcripts** directly from Zoom, Google Drive, Otter.ai, S3, or local files
-2. **Analyzes each recording** to extract questions, decisions, action items, and insights
+1. **Pulls transcripts** from Zoom, Google Drive, Otter.ai, S3, or local files
+2. **Extracts intelligence** — questions, decisions, action items, insights, and custom patterns
 3. **Synthesizes across sessions** to find patterns, gaps, and trends
-4. **Generates dashboards** with interactive visualizations and knowledge graphs
-5. **Exports anywhere** — Google Drive, Notion, Airtable, email, S3
-
-All configurable. All automated. All from a single workflow.
-
----
-
-## Use Cases
-
-### 🏢 **Meeting Intelligence for Teams**
-Distill weeks of team meetings to surface:
-- Recurring blockers and risks
-- Decisions made (and by whom)
-- Action items that fell through the cracks
-- Topics that keep coming up
-
-*"What did we decide about the API migration across all our standups?"*
-
-### 📞 **Sales Call Analysis**
-Distill recorded sales calls to extract:
-- Common objections and responses
-- Competitor mentions
-- Pricing discussions
-- Commitment language and next steps
-
-*"What objections came up most in Q1 demos?"*
-
-### 🎯 **Customer Research Synthesis**
-Distill user interviews and focus groups:
-- Pain points by frequency
-- Feature requests across segments
-- Sentiment patterns
-- Quotes for stakeholder presentations
-
-*"What do enterprise customers say about onboarding?"*
-
-### 🎓 **Training & Educational Content**
-Distill lecture recordings, workshops, webinars:
-- Key concepts and definitions
-- Q&A index for reference
-- Topic coverage heatmap
-- Recommended learning paths
-
-*"Create a study guide from this semester's lectures."*
-
-### 🎙️ **Podcast & Content Management**
-Distill podcast episodes for:
-- Guest insights and quotable moments
-- Topic index across episodes
-- Resource/tool mentions
-- Cross-episode themes
-
-*"What tools have guests recommended across all episodes?"*
-
-### ⚖️ **Legal & Compliance Review**
-Distill depositions, hearings, compliance calls:
-- Key statements and admissions
-- Timeline of events mentioned
-- Contradictions across sessions
-- Risk flags and red lines
-
-*"Flag all mentions of the contract terms across depositions."*
-
-### 🔬 **Research Interview Analysis**
-Distill qualitative research:
-- Theme extraction across interviews
-- Quote attribution
-- Coding and categorization
-- Gap analysis
-
-*"What themes emerged from the 30 user interviews?"*
-
-### 📊 **Executive Briefing Automation**
-Distill meeting recordings into executive summaries:
-- Key decisions and rationale
-- Risk and blocker summary
-- Progress against goals
-- Action item status
-
-*"Generate a weekly leadership digest from all department meetings."*
+4. **Quality reviews** via 3-pass automated checking with auto-fix
+5. **Generates executive dashboards** with interactive visualizations
+6. **Exports anywhere** — Google Drive, Notion, Airtable, email, S3, JSON
 
 ---
 
-## How Distill Works
+## Architecture
+
+Distill is a **prompt library** with multiple runners. The prompts encode the methodology; the runners are just execution environments.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     SOURCE INTEGRATIONS                          │
-│                                                                  │
-│   📹 Zoom      📁 Google Drive      🎙️ Otter.ai      ☁️ S3      │
-│   Recordings   Shared folders       Live transcripts  Archives   │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    INTELLIGENT EXTRACTION                        │
-│                                                                  │
-│   Standard Analysis          Custom Extractors (You Define)     │
-│   ├─ Questions & Answers     ├─ "Action Items"                  │
-│   ├─ Key Topics              ├─ "Decisions Made"                │
-│   ├─ Tools & Resources       ├─ "Risk Flags"                    │
-│   ├─ Participants            ├─ "Customer Quotes"               │
-│   └─ Notable Insights        └─ "Competitor Mentions"           │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   CROSS-SESSION SYNTHESIS                        │
-│                                                                  │
-│   • Pattern detection across all sessions                       │
-│   • Topic frequency and coverage analysis                       │
-│   • Question/answer aggregation                                 │
-│   • Trend identification                                        │
-│   • Gap analysis                                                │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    DASHBOARD GENERATION                          │
-│                                                                  │
-│   📊 Interactive HTML        📋 Structured JSON                  │
-│   ├─ Knowledge graph         ├─ All extracted data              │
-│   ├─ Topic heatmap           ├─ API-ready format                │
-│   ├─ Question explorer       ├─ Import to any tool              │
-│   ├─ Session navigator       └─ Programmatic access             │
-│   └─ Custom extractor views                                     │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    QUALITY ASSURANCE                             │
-│                                                                  │
-│   3-Pass Automated Review:                                      │
-│   ✓ Content accuracy         ✓ Visual design                    │
-│   ✓ Technical quality        → Auto-fix issues                  │
-└────────────────────────────┬────────────────────────────────────┘
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    EXPORT DESTINATIONS                           │
-│                                                                  │
-│   📁 Google Drive    📝 Notion    📊 Airtable                    │
-│   ☁️ AWS S3          📧 Email     🔔 Slack/Webhook               │
-└─────────────────────────────────────────────────────────────────┘
+core/prompts/          ← The methodology (this is the product)
+├── analyze-file.md
+├── synthesize.md
+├── generate-dashboard.md
+├── generate-json.md
+└── quality-review/
+    ├── content-accuracy.md
+    ├── visual-design.md
+    ├── technical-quality.md
+    └── improve.md
+
+runners/               ← Execution options (pick your platform)
+├── python/            ~300 line CLI, anthropic SDK
+└── n8n/               Visual workflow, no-code
 ```
 
----
-
-## Key Features
-
-### 🔌 Source Integrations
-Pull transcripts automatically from:
-- **Zoom Cloud Recordings** — Process meeting recordings directly
-- **Google Drive** — Watch folders for new transcripts
-- **Otter.ai** — Receive transcripts via webhook
-- **AWS S3** — Process archived recordings
-- **Local files** — Drop files in a folder
-
-### 🎯 Custom Extractors
-Define what matters to YOUR use case:
-
-```json
-[
-  {
-    "name": "Customer Pain Points",
-    "pattern": "frustrated|annoying|difficult|hate|problem",
-    "instructions": "Extract complaints with context and severity"
-  },
-  {
-    "name": "Competitor Mentions",
-    "pattern": "Salesforce|HubSpot|competitor|alternative|switching",
-    "instructions": "Note what was said and sentiment"
-  },
-  {
-    "name": "Pricing Discussions",
-    "pattern": "price|cost|budget|expensive|discount|deal",
-    "instructions": "Extract pricing objections and responses"
-  }
-]
-```
-
-Custom extractors:
-- Run **in addition to** standard extraction
-- Create dedicated sections in every output
-- Are searchable in the dashboard
-- Export cleanly to JSON/Airtable
-
-### 📊 Interactive Dashboards
-Generated dashboards include:
-- **Knowledge Graph** — Visual relationships between topics, tools, and sessions
-- **Topic Heatmap** — See what's covered where at a glance
-- **Question Explorer** — Searchable Q&A across all sessions
-- **Session Navigator** — Paginated session cards with summaries
-- **Custom Sections** — Your extractors get their own views
-
-### 🔄 Incremental Processing
-- Only process new/changed files
-- Resume from failures
-- Add to existing analyses
-- Track processing state
-
-### ✨ Quality Assurance Loop
-Automated 3-pass review ensures professional output:
-1. **Content Accuracy** — Data matches sources
-2. **Visual Design** — Professional, usable UI
-3. **Technical Quality** — Everything works
-
-Issues are auto-fixed. Loop repeats until quality passes.
-
-### 🎨 Full Customization
-- Brand colors and logo
-- Custom CSS
-- Natural language styling instructions
-- Select which sections to include
+Use the prompts with **any** LLM orchestration: Python CLI, n8n, LangChain, OpenAI Agents, CrewAI, or direct API calls.
 
 ---
 
 ## Quick Start
 
-### Option A: Python CLI (Simplest)
+### Option A: Python CLI
 
 ```bash
 cd runners/python
 pip install -r requirements.txt
+export ANTHROPIC_API_KEY=your-key
 
 # Basic usage
 python distill.py /path/to/transcripts
@@ -251,38 +72,115 @@ python distill.py ./transcripts \
   --parallel 3
 ```
 
-### Option B: n8n Workflow (Visual, No-Code)
+### Option B: n8n Workflow
 
-1. Import workflows into n8n:
-   - `runners/n8n/distill-main.json`
-   - `runners/n8n/distill-analyzer.json`
+1. Import `runners/n8n/distill-main.json` and `distill-analyzer.json`
 2. Configure Claude Bridge ([setup guide](docs/claude-bridge-setup.md))
-3. Run via Configuration Form or webhook
+3. Trigger via form or webhook
 
 ```bash
 curl -X POST https://your-n8n/webhook/distill \
   -H "Content-Type: application/json" \
-  -d '{
-    "projectName": "Q1 Sales Calls",
-    "customExtractors": [
-      {"name": "Objections", "pattern": "but|however|concern"}
-    ]
-  }'
+  -d '{"projectName": "Q1 Sales Calls"}'
 ```
 
-### Option C: Use the Prompts Directly
+### Option C: Use Prompts Directly
 
-The real value is in `core/prompts/`. Use them with any LLM orchestration:
+The prompts in `core/prompts/` work with any LLM. Variables use `{{placeholder}}` syntax. Plug them into:
 - LangChain / LangGraph
 - OpenAI Agents SDK
 - CrewAI / AutoGen
-- Direct API calls
+- Any Claude/GPT API wrapper
 
 See `core/schemas/config.schema.json` for configuration options.
 
 ---
 
-## Supported Input Formats
+## Use Cases
+
+### 🏢 Meeting Intelligence
+Surface recurring blockers, track decisions, catch dropped action items across weeks of standups.
+
+### 📞 Sales Call Analysis
+Extract objections, competitor mentions, pricing discussions, commitment language.
+
+### 🎯 Customer Research
+Synthesize pain points, feature requests, and sentiment from user interviews.
+
+### 🎓 Educational Content
+Generate study guides, Q&A indexes, and topic coverage heatmaps from lectures.
+
+### 🎙️ Podcast Management
+Build searchable archives with guest insights, quotes, and topic indexes.
+
+### 📊 Executive Briefings
+Auto-generate weekly digests from department meetings with decisions and risks.
+
+---
+
+## Pipeline
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     SOURCE INTEGRATIONS                          │
+│   📹 Zoom    📁 Google Drive    🎙️ Otter.ai    ☁️ S3    📄 Local │
+└────────────────────────────┬────────────────────────────────────┘
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    INTELLIGENT EXTRACTION                        │
+│   Standard: Questions, Topics, Tools, Participants, Insights    │
+│   Custom: Your patterns (Action Items, Decisions, Risk Flags)   │
+└────────────────────────────┬────────────────────────────────────┘
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   CROSS-SESSION SYNTHESIS                        │
+│   Pattern detection • Topic frequency • Gap analysis • Trends   │
+└────────────────────────────┬────────────────────────────────────┘
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      QUALITY ASSURANCE                           │
+│   3-pass review: Content accuracy → Visual design → Technical   │
+│   Auto-fix issues • Loop until quality passes                   │
+└────────────────────────────┬────────────────────────────────────┘
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         OUTPUT                                   │
+│   📊 Interactive Dashboard    📋 Structured JSON                 │
+│   Knowledge graph, heatmaps   API-ready, import anywhere        │
+└────────────────────────────┬────────────────────────────────────┘
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    EXPORT DESTINATIONS                           │
+│   📁 Google Drive   📝 Notion   📊 Airtable   ☁️ S3   📧 Email   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Custom Extractors
+
+Define patterns that matter to YOUR use case:
+
+```json
+[
+  {
+    "name": "Customer Pain Points",
+    "pattern": "frustrated|annoying|difficult|hate|problem",
+    "instructions": "Extract complaints with context and severity"
+  },
+  {
+    "name": "Competitor Mentions",
+    "pattern": "Salesforce|HubSpot|competitor|switching",
+    "instructions": "Note what was said and sentiment"
+  }
+]
+```
+
+Custom extractors run **in addition to** standard extraction and get dedicated dashboard sections.
+
+---
+
+## Supported Formats
 
 | Format | Extension | Use Case |
 |--------|-----------|----------|
@@ -293,135 +191,57 @@ See `core/schemas/config.schema.json` for configuration options.
 
 ---
 
-## Output Options
+## Output
 
-### HTML Dashboard
-Self-contained, interactive HTML file with:
+### Interactive Dashboard
+Self-contained HTML with:
 - D3.js knowledge graph
-- Search and filtering
+- Topic heatmap
+- Searchable Q&A explorer
+- Session navigator
+- Custom extractor views
 - Dark/light mode
 - Mobile responsive
-- Print stylesheet
 
-### JSON Data
-Structured export for programmatic use:
+### Structured JSON
 ```json
 {
   "metadata": { "projectName": "...", "runId": "..." },
   "summary": { "totalSessions": 47, "keyTakeaways": [...] },
   "sessions": [...],
   "questions": [...],
-  "topics": [...],
-  "tools": [...],
-  "customExtractors": {
-    "action_items": [...],
-    "decisions": [...],
-    "risk_flags": [...]
-  }
+  "customExtractors": { "action_items": [...], "decisions": [...] }
 }
 ```
 
 ---
 
-## Configuration Options
+## Configuration
 
 | Category | Options |
 |----------|---------|
 | **Metadata** | Project name, title, participants, tags, date range |
-| **Styling** | Colors, logo URL, custom CSS, styling instructions |
+| **Styling** | Colors, logo URL, custom CSS |
 | **Processing** | Output format, incremental mode, sections to include |
 | **Quality** | Enable/disable review loop, max iterations |
-| **Source** | Integration type, credentials/config |
+| **Source** | Integration type and credentials |
 | **Export** | Destinations (gdrive, notion, s3, email, airtable) |
-| **Extractors** | Custom extraction patterns and instructions |
-| **Notifications** | Webhook URL for completion alerts |
+| **Extractors** | Custom patterns and instructions |
+
+Full schema: `core/schemas/config.schema.json`
 
 ---
-
-## Example Configurations
-
-### Weekly Team Intelligence
-```json
-{
-  "projectName": "Engineering Weekly",
-  "sourceIntegration": "Zoom Cloud Recordings",
-  "customExtractors": [
-    {"name": "Blockers", "pattern": "blocked|stuck|waiting on"},
-    {"name": "Decisions", "pattern": "decided|agreed|let's go with"}
-  ],
-  "exportDestinations": "notion,slack",
-  "processingMode": "Incremental"
-}
-```
-
-### Quarterly Sales Analysis
-```json
-{
-  "projectName": "Q1 2024 Sales Calls",
-  "sourceIntegration": "Google Drive folder",
-  "customExtractors": [
-    {"name": "Objections", "pattern": "price|budget|competitor"},
-    {"name": "Next Steps", "pattern": "follow up|send|schedule|demo"}
-  ],
-  "exportDestinations": "airtable,gdrive"
-}
-```
-
-### Research Interview Synthesis
-```json
-{
-  "projectName": "User Research - Onboarding",
-  "customExtractors": [
-    {"name": "Pain Points", "pattern": "confusing|difficult|frustrated"},
-    {"name": "Delight Moments", "pattern": "love|great|easy|amazing"},
-    {"name": "Feature Requests", "pattern": "wish|would be nice|should have"}
-  ],
-  "exportDestinations": "notion"
-}
-```
-
----
-
-## Repository Structure
-
-```
-distill/
-├── core/                          # The methodology (prompts + schemas)
-│   ├── prompts/
-│   │   ├── analyze-file.md        # Single file analysis prompt
-│   │   ├── synthesize.md          # Cross-session synthesis prompt
-│   │   ├── generate-dashboard.md  # Dashboard generation prompt
-│   │   ├── generate-json.md       # JSON export prompt
-│   │   └── quality-review/        # QA loop prompts
-│   │       ├── content-accuracy.md
-│   │       ├── visual-design.md
-│   │       ├── technical-quality.md
-│   │       └── improve.md
-│   └── schemas/
-│       └── config.schema.json     # Configuration schema
-│
-├── runners/                       # Multiple ways to run Distill
-│   ├── python/                    # Python CLI (~300 lines)
-│   │   ├── distill.py
-│   │   └── requirements.txt
-│   └── n8n/                       # n8n workflows (visual)
-│       ├── distill-main.json
-│       └── distill-analyzer.json
-│
-├── examples/                      # Sample transcript files
-└── docs/
-```
 
 ## Requirements
 
-### For Python CLI
+**Python CLI:**
 - Python 3.10+
 - `anthropic` package
 - `ANTHROPIC_API_KEY` environment variable
 
-### For n8n Workflow
-- n8n v1.0+ (self-hosted or cloud)
-- Claude Bridge — HTTP service for Claude computer use ([setup guide](docs/claude-bridge-setup.md))
+**n8n Workflow:**
+- n8n v1.0+
+- Claude Bridge service ([setup guide](docs/claude-bridge-setup.md))
 
 ---
 
@@ -429,12 +249,8 @@ distill/
 
 MIT License — See [LICENSE](LICENSE)
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md)
-
 ---
 
-**Stop losing insights in recordings. Start distilling intelligence.**
+**Transform recordings into intelligence.**
 
-*Created by Joshua Burdick — [GitHub](https://github.com/GixGosu) | [Cyberarctica](https://www.cyberarctica.com/)*
+*Created by Joshua Burdick — [GitHub](https://github.com/GixGosu) | [Cyberarctica](https://cyberarctica.com)*
