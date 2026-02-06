@@ -1,0 +1,183 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Distill Configuration",
+  "description": "Configuration schema for Distill transcript analysis",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Project metadata",
+      "properties": {
+        "projectName": {
+          "type": "string",
+          "description": "Name of the project/analysis",
+          "default": "Transcript Analysis"
+        },
+        "dashboardTitle": {
+          "type": "string",
+          "description": "Title displayed in the dashboard",
+          "default": "Transcript Analysis Dashboard"
+        },
+        "participants": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of participants"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tags for categorization"
+        },
+        "dateRange": {
+          "type": "string",
+          "description": "Date range description"
+        }
+      }
+    },
+    "styling": {
+      "type": "object",
+      "description": "Visual styling options",
+      "properties": {
+        "primaryColor": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "default": "#2563eb"
+        },
+        "secondaryColor": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "default": "#7c3aed"
+        },
+        "accentColor": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "default": "#f59e0b"
+        },
+        "logoUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to logo image"
+        },
+        "customCss": {
+          "type": "string",
+          "description": "Additional CSS rules"
+        },
+        "stylingInstructions": {
+          "type": "string",
+          "description": "Natural language styling guide"
+        }
+      }
+    },
+    "processing": {
+      "type": "object",
+      "description": "Processing options",
+      "properties": {
+        "outputFormat": {
+          "type": "string",
+          "enum": ["html", "json", "both"],
+          "default": "both"
+        },
+        "incrementalMode": {
+          "type": "boolean",
+          "description": "Only process new/changed files",
+          "default": false
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["questions", "topics", "tools", "sessions", "graph", "heatmap", "summary"]
+          },
+          "default": ["questions", "topics", "tools", "sessions", "graph", "heatmap", "summary"]
+        },
+        "parallelism": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3
+        }
+      }
+    },
+    "qualityReview": {
+      "type": "object",
+      "description": "Quality review loop settings",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "maxIterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "default": 3
+        }
+      }
+    },
+    "customExtractors": {
+      "type": "array",
+      "description": "Custom extraction patterns",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the extractor (e.g., 'Action Items')"
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Regex pattern or keywords to match"
+          },
+          "instructions": {
+            "type": "string",
+            "description": "Instructions for what/how to extract"
+          }
+        },
+        "required": ["name"]
+      }
+    },
+    "source": {
+      "type": "object",
+      "description": "Source integration settings",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["local", "zoom", "gdrive", "otter", "s3"],
+          "default": "local"
+        },
+        "config": {
+          "type": "object",
+          "description": "Source-specific configuration"
+        }
+      }
+    },
+    "export": {
+      "type": "object",
+      "description": "Export destination settings",
+      "properties": {
+        "destinations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["local", "gdrive", "notion", "s3", "email", "airtable"]
+          },
+          "default": ["local"]
+        },
+        "config": {
+          "type": "object",
+          "description": "Destination-specific configuration"
+        }
+      }
+    },
+    "notifications": {
+      "type": "object",
+      "properties": {
+        "webhookUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Webhook URL for completion notifications"
+        }
+      }
+    }
+  }
+}

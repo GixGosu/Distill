@@ -3,6 +3,8 @@
 !README.md
 !CONTRIBUTING.md
 !docs/*.md
+!core/prompts/*.md
+!core/prompts/**/*.md
 
 # n8n execution data
 .n8n/

@@ -231,29 +231,54 @@ Issues are auto-fixed. Loop repeats until quality passes.
 
 ## Quick Start
 
-### 1. Import Workflows into n8n
-- `workflows/distill-main.json`
-- `workflows/distill-analyzer.json`
+### Option A: Python CLI (Simplest)
 
-### 2. Configure Claude Bridge
-See [docs/claude-bridge-setup.md](docs/claude-bridge-setup.md)
+```bash
+cd runners/python
+pip install -r requirements.txt
 
-### 3. Run via Configuration Form
-Open the form, set your options, submit. That's it.
+# Basic usage
+python distill.py /path/to/transcripts
 
-### 4. Or Trigger via Webhook
+# With custom extractors
+python distill.py ./transcripts --extractors '[{"name": "Action Items", "pattern": "todo|action"}]'
+
+# Full options
+python distill.py ./transcripts \
+  --output ./results \
+  --format both \
+  --project-name "Q1 Meetings" \
+  --parallel 3
+```
+
+### Option B: n8n Workflow (Visual, No-Code)
+
+1. Import workflows into n8n:
+   - `runners/n8n/distill-main.json`
+   - `runners/n8n/distill-analyzer.json`
+2. Configure Claude Bridge ([setup guide](docs/claude-bridge-setup.md))
+3. Run via Configuration Form or webhook
+
 ```bash
 curl -X POST https://your-n8n/webhook/distill \
   -H "Content-Type: application/json" \
   -d '{
     "projectName": "Q1 Sales Calls",
-    "sourceIntegration": "Zoom Cloud Recordings",
     "customExtractors": [
-      {"name": "Objections", "pattern": "but|however|concern", "instructions": "Extract sales objections"}
-    ],
-    "exportDestinations": "notion,email"
+      {"name": "Objections", "pattern": "but|however|concern"}
+    ]
   }'
 ```
+
+### Option C: Use the Prompts Directly
+
+The real value is in `core/prompts/`. Use them with any LLM orchestration:
+- LangChain / LangGraph
+- OpenAI Agents SDK
+- CrewAI / AutoGen
+- Direct API calls
+
+See `core/schemas/config.schema.json` for configuration options.
 
 ---
 
@@ -357,10 +382,46 @@ Structured export for programmatic use:
 
 ---
 
+## Repository Structure
+
+```
+distill/
+├── core/                          # The methodology (prompts + schemas)
+│   ├── prompts/
+│   │   ├── analyze-file.md        # Single file analysis prompt
+│   │   ├── synthesize.md          # Cross-session synthesis prompt
+│   │   ├── generate-dashboard.md  # Dashboard generation prompt
+│   │   ├── generate-json.md       # JSON export prompt
+│   │   └── quality-review/        # QA loop prompts
+│   │       ├── content-accuracy.md
+│   │       ├── visual-design.md
+│   │       ├── technical-quality.md
+│   │       └── improve.md
+│   └── schemas/
+│       └── config.schema.json     # Configuration schema
+│
+├── runners/                       # Multiple ways to run Distill
+│   ├── python/                    # Python CLI (~300 lines)
+│   │   ├── distill.py
+│   │   └── requirements.txt
+│   └── n8n/                       # n8n workflows (visual)
+│       ├── distill-main.json
+│       └── distill-analyzer.json
+│
+├── examples/                      # Sample transcript files
+└── docs/
+```
+
 ## Requirements
 
-- **n8n** v1.0+ (self-hosted or cloud)
-- **Claude Bridge** — HTTP service for Claude computer use ([setup guide](docs/claude-bridge-setup.md))
+### For Python CLI
+- Python 3.10+
+- `anthropic` package
+- `ANTHROPIC_API_KEY` environment variable
+
+### For n8n Workflow
+- n8n v1.0+ (self-hosted or cloud)
+- Claude Bridge — HTTP service for Claude computer use ([setup guide](docs/claude-bridge-setup.md))
 
 ---
 
