@@ -1,0 +1,49 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:15.000
+Welcome back to Tech Unfiltered. I'm your host Maya Chen, and today we have a special guest - Alex Rivera, founder of DataMesh, which just raised their Series B at a $500 million valuation. Alex, welcome to the show.
+
+00:00:15.000 --> 00:00:20.000
+Thanks for having me, Maya. Big fan of the podcast.
+
+00:00:20.000 --> 00:00:35.000
+So let's jump right in. DataMesh has been called the "anti-data-warehouse." For listeners who aren't familiar, can you explain what that means?
+
+00:00:35.000 --> 00:01:05.000
+Sure. Traditional data warehouses force you to move all your data to one central location. That made sense 20 years ago. But now companies have data in dozens of systems - Salesforce, Snowflake, MongoDB, you name it. Moving it all is expensive, slow, and creates compliance nightmares. We flip that model. Your data stays where it is, and we create a virtual layer that lets you query across all of it.
+
+00:01:05.000 --> 00:01:20.000
+That sounds like data virtualization, which has been around for a while. What's different about your approach?
+
+00:01:20.000 --> 00:01:50.000
+Great question. Traditional virtualization is slow because it queries source systems in real-time. We built a smart caching layer that learns your query patterns. It pre-fetches data you're likely to need. Our benchmarks show we're within 10% of native warehouse performance, but without the ETL headaches.
+
+00:01:50.000 --> 00:02:05.000
+That's impressive. Let's talk about the founding story. You were at Google before this, right?
+
+00:02:05.000 --> 00:02:35.000
+Yeah, I spent six years on the BigQuery team. I loved the technical challenges, but I kept seeing the same pattern with enterprise customers. They'd spend months migrating data, build pipelines, then realize they forgot a crucial data source. Start over. It was Groundhog Day. I knew there had to be a better way.
+
+00:02:35.000 --> 00:02:50.000
+When did you decide to actually start the company?
+
+00:02:50.000 --> 00:03:15.000
+Honestly, it was a conversation with a customer. They told me they had spent $2 million on data infrastructure and still couldn't answer basic questions about their business. That night I went home and started sketching out what became DataMesh.
+
+00:03:15.000 --> 00:03:30.000
+And now you've raised over $80 million total. What does the fundraising process look like from the inside?
+
+00:03:30.000 --> 00:04:00.000
+It's a rollercoaster. For the Series A, we got 40 rejections before Sequoia said yes. This time was different - we had revenue and happy customers. But the pressure is higher too. Investors expect you to 10x in three years. You're constantly balancing growth against sustainability.
+
+00:04:00.000 --> 00:04:15.000
+What advice would you give to founders who are just starting out?
+
+00:04:15.000 --> 00:04:45.000
+Three things. First, talk to customers before you write any code. I spent three months just doing interviews. Second, find a co-founder who complements you - my CTO handles the hard engineering while I focus on product and go-to-market. Third, and this is the hardest one, be patient. We were "overnight success" that took five years.
+
+00:04:45.000 --> 00:05:00.000
+Wise words. Alex Rivera, thanks so much for joining us today. DataMesh - we'll put links in the show notes.
+
+00:05:00.000 --> 00:05:10.000
+Thanks Maya. This was fun.

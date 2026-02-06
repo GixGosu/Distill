@@ -1,0 +1,55 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:08.000
+Alright everyone, let's get started. This is our weekly product sync. Sarah, you want to kick us off with the roadmap update?
+
+00:00:08.000 --> 00:00:25.000
+Sure. So we're on track for the Q2 release. The main blocker right now is the API migration. Dev team says they need two more weeks, which puts us at March 15th for beta.
+
+00:00:25.000 --> 00:00:35.000
+March 15th works. What about the mobile team? Are they synced with that timeline?
+
+00:00:35.000 --> 00:00:50.000
+Yeah, Tom and I talked yesterday. They're actually ahead of schedule. The iOS build is already in TestFlight. Android is about a week behind but they'll be ready.
+
+00:00:50.000 --> 00:01:05.000
+Great. Any risks we should be tracking?
+
+00:01:05.000 --> 00:01:25.000
+One thing - the third-party auth integration is still in review with their security team. If that gets delayed, we'll need to ship with our fallback auth flow. It works, but it's not as smooth.
+
+00:01:25.000 --> 00:01:40.000
+Let's set a decision point. If we don't hear back by Friday, we go with fallback. Sarah, can you send that escalation email today?
+
+00:01:40.000 --> 00:01:45.000
+Will do. I'll cc you.
+
+00:01:45.000 --> 00:02:00.000
+Perfect. Mike, what's the status on the performance testing?
+
+00:02:00.000 --> 00:02:20.000
+We ran the load tests last night. Good news is we hit our target of 10,000 concurrent users. Bad news is response times degrade past 7,500. We're investigating - might be a database connection pooling issue.
+
+00:02:20.000 --> 00:02:35.000
+Do we have enough runway to fix that before beta?
+
+00:02:35.000 --> 00:02:50.000
+Should be fine. It's a config change, not code. I'll have an update by Thursday.
+
+00:02:50.000 --> 00:03:00.000
+Okay. Last item - the customer feedback from the alpha. Jen, you analyzed those responses?
+
+00:03:00.000 --> 00:03:20.000
+Yeah, I put together a summary. Overall sentiment is positive - 78% said they'd recommend. The top three feature requests were: better search, dark mode, and export to PDF. Dark mode is already planned. Search improvements are in the backlog.
+
+00:03:20.000 --> 00:03:30.000
+And PDF export?
+
+00:03:30.000 --> 00:03:45.000
+That's new. Wasn't on our radar. But multiple enterprise customers asked for it. Might be worth prioritizing for Q3.
+
+00:03:45.000 --> 00:04:00.000
+Let's add it to the backlog and discuss in next week's planning. Good work everyone. Same time next week?
+
+00:04:00.000 --> 00:04:05.000
+Works for me. Thanks all.
